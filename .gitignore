@@ -39,3 +39,33 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Dependances et fichiers generes
+node_modules/
+.expo/
+dist/
+web-build/
+coverage/
+*.log
+*.tsbuildinfo
+
+# Configuration personnelle et secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Anciennes copies et archives
+sauvegardes/
+sauvegarde_avant_*/
+App.*.sauvegarde.tsx
+*.zip
+
+# Bases et exports personnels
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+training-programme-*.json
+training-programme-*.csv

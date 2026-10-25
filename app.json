@@ -1,25 +1,18 @@
 {
   "expo": {
-    "name": "training-programme",
-    "slug": "training-programme",
-    "version": "1.0.0",
+    "name": "Training Programme",
+    "slug": "muscu-bleu",
+    "scheme": "trainingprogramme",
+    "version": "0.7.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false
     },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "plugins": [
+      "expo-sqlite",
+      "expo-sharing",
+      "expo-status-bar"
+    ]
   }
 }
