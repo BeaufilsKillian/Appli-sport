@@ -1,0 +1,408 @@
+{
+  "pdf": "/guide/assets/guide-mobile-ecb9f594f3.pdf",
+  "video": "/guide/assets/presentation-9f7eb117ab.mp4",
+  "poster": "/guide/assets/apercu-video-dde72a15a7.webp",
+  "social": "/guide/assets/partager-b7fbc42782.jpg",
+  "pages": [
+    "/guide/assets/mobile-home-37396519ef.webp",
+    "/guide/assets/mobile-folder-297c4d8042.webp",
+    "/guide/assets/mobile-folder-open-bd1460569c.webp",
+    "/guide/assets/mobile-session-243e794388.webp",
+    "/guide/assets/mobile-empty-session-787c9a0bc2.webp",
+    "/guide/assets/mobile-library-a6e7199b62.webp",
+    "/guide/assets/mobile-plan-4f5d58cf83.webp",
+    "/guide/assets/mobile-objectives-5f3f53ef39.webp",
+    "/guide/assets/mobile-save-plan-afffdbd7f8.webp",
+    "/guide/assets/mobile-rm-open-4f5d58cf83.webp",
+    "/guide/assets/mobile-rm-reference-8a39facd38.webp",
+    "/guide/assets/mobile-rm-input-c1985d7fcc.webp",
+    "/guide/assets/mobile-rm-saved-8c865972eb.webp",
+    "/guide/assets/mobile-ghosts-f43ca6f1cb.webp",
+    "/guide/assets/mobile-validated-3011d60f92.webp",
+    "/guide/assets/mobile-share-folder-0ba70617a5.webp",
+    "/guide/assets/mobile-share-modal-3368ae258b.webp",
+    "/guide/assets/mobile-account-0f928dfaba.webp",
+    "/guide/assets/mobile-tools-d2b809a74d.webp",
+    "/guide/assets/mobile-animations-d2b809a74d.webp",
+    "/guide/assets/mobile-update-40619b907a.webp"
+  ],
+  "steps": {
+    "home": {
+      "src": "/guide/assets/mobile-home-37396519ef.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Touche « Créer un dossier »",
+      "body": "Depuis l’accueil, crée le dossier qui contiendra les séances de ton programme.",
+      "highlights": [
+        [
+          19,
+          274,
+          352,
+          44
+        ]
+      ]
+    },
+    "folder": {
+      "src": "/guide/assets/mobile-folder-297c4d8042.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Nomme ton programme",
+      "body": "Saisis un nom, puis touche « Créer le dossier ». Exemple : Programme 4 jours.",
+      "highlights": [
+        [
+          36,
+          170,
+          318,
+          47
+        ],
+        [
+          36,
+          232,
+          318,
+          46
+        ]
+      ]
+    },
+    "folder-open": {
+      "src": "/guide/assets/mobile-folder-open-bd1460569c.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Crée une séance",
+      "body": "Dans le dossier, touche « Créer une séance ».",
+      "highlights": [
+        [
+          19,
+          347,
+          352,
+          45
+        ]
+      ]
+    },
+    "session": {
+      "src": "/guide/assets/mobile-session-243e794388.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Nomme ta séance",
+      "body": "Exemple : Haut du corps. Le bouton s’appelle actuellement « Créer le programme ».",
+      "highlights": [
+        [
+          36,
+          170,
+          318,
+          47
+        ],
+        [
+          36,
+          233,
+          318,
+          46
+        ]
+      ]
+    },
+    "empty-session": {
+      "src": "/guide/assets/mobile-empty-session-787c9a0bc2.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Ajoute un exercice",
+      "body": "Touche « Ajouter un exercice ».",
+      "highlights": [
+        [
+          19,
+          119,
+          352,
+          45
+        ]
+      ]
+    },
+    "library": {
+      "src": "/guide/assets/mobile-library-a6e7199b62.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Choisis ton mouvement",
+      "body": "Recherche un exercice, puis touche sa ligne pour l’ajouter.",
+      "highlights": [
+        [
+          19,
+          145,
+          352,
+          44
+        ],
+        [
+          19,
+          248,
+          352,
+          66
+        ]
+      ]
+    },
+    "plan": {
+      "src": "/guide/assets/mobile-plan-4f5d58cf83.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Ouvre les réglages",
+      "body": "Touche « Séries / repos » sous l’exercice. Les flèches changent son ordre.",
+      "highlights": [
+        [
+          31,
+          260,
+          159,
+          37
+        ]
+      ]
+    },
+    "objectives": {
+      "src": "/guide/assets/mobile-objectives-5f3f53ef39.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Règle tes objectifs",
+      "body": "Renseigne les séries, le minimum et/ou le maximum de répétitions, puis le repos.",
+      "highlights": [
+        [
+          37,
+          235,
+          301,
+          45
+        ],
+        [
+          37,
+          391,
+          301,
+          47
+        ],
+        [
+          37,
+          473,
+          301,
+          44
+        ]
+      ]
+    },
+    "save-plan": {
+      "src": "/guide/assets/mobile-save-plan-afffdbd7f8.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Fais défiler et enregistre",
+      "body": "Descends dans cette même fenêtre, puis touche « Enregistrer les objectifs ».",
+      "highlights": [
+        [
+          37,
+          711,
+          301,
+          46
+        ]
+      ]
+    },
+    "rm-open": {
+      "src": "/guide/assets/mobile-rm-open-4f5d58cf83.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Ouvre la fiche de l’exercice",
+      "body": "Touche « Animation » dans ta séance.",
+      "highlights": [
+        [
+          200,
+          260,
+          159,
+          37
+        ]
+      ]
+    },
+    "rm-reference": {
+      "src": "/guide/assets/mobile-rm-reference-8a39facd38.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Descends à « Ma charge de référence »",
+      "body": "Dans le bloc 1RM, touche « Modifier ».",
+      "highlights": [
+        [
+          274,
+          593,
+          82,
+          36
+        ]
+      ]
+    },
+    "rm-input": {
+      "src": "/guide/assets/mobile-rm-input-c1985d7fcc.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Saisis ton 1RM en kg",
+      "body": "Entre une valeur mesurée ou estimée, puis touche « Enregistrer le 1RM ».",
+      "highlights": [
+        [
+          36,
+          188,
+          318,
+          48
+        ],
+        [
+          37,
+          297,
+          317,
+          45
+        ]
+      ]
+    },
+    "rm-saved": {
+      "src": "/guide/assets/mobile-rm-saved-8c865972eb.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Vérifie la valeur enregistrée",
+      "body": "Le 1RM reste modifiable pour cet exercice. Il est facultatif ; aucun test maximal n’est nécessaire.",
+      "highlights": [
+        [
+          19,
+          566,
+          352,
+          118
+        ]
+      ]
+    },
+    "ghosts": {
+      "src": "/guide/assets/mobile-ghosts-f43ca6f1cb.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Retrouve ta dernière performance",
+      "body": "Les valeurs grisées correspondent à la dernière séance pour la même série, pas à ton record.",
+      "highlights": [
+        [
+          104,
+          393,
+          84,
+          44
+        ],
+        [
+          220,
+          393,
+          75,
+          44
+        ]
+      ]
+    },
+    "validated": {
+      "src": "/guide/assets/mobile-validated-3011d60f92.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Saisis charge et répétitions",
+      "body": "Les deux valeurs valides cochent la série. Le rond reprend les anciennes valeurs disponibles dans les champs vides.",
+      "highlights": [
+        [
+          104,
+          516,
+          84,
+          44
+        ],
+        [
+          220,
+          516,
+          75,
+          44
+        ],
+        [
+          321,
+          517,
+          36,
+          42
+        ]
+      ]
+    },
+    "share-folder": {
+      "src": "/guide/assets/mobile-share-folder-0ba70617a5.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Ouvre le partage",
+      "body": "Dans le dossier, touche « Partager ce dossier ». Connecte-toi dans Profil au préalable.",
+      "highlights": [
+        [
+          19,
+          351,
+          352,
+          44
+        ]
+      ]
+    },
+    "share-modal": {
+      "src": "/guide/assets/mobile-share-modal-3368ae258b.webp",
+      "width": 342,
+      "height": 278,
+      "title": "Crée un lien",
+      "body": "Touche « Créer un lien de partage », puis « Copier le lien » quand il apparaît. Envoie-le au destinataire.",
+      "highlights": [
+        [
+          20,
+          158,
+          302,
+          44
+        ]
+      ]
+    },
+    "account": {
+      "src": "/guide/assets/mobile-account-0f928dfaba.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Connecte-toi depuis Profil",
+      "body": "Dans « Compte et sauvegarde », crée un compte ou utilise « Me connecter ». Garde le même compte sur tes appareils.",
+      "highlights": [
+        [
+          35,
+          150,
+          320,
+          108
+        ],
+        [
+          35,
+          269,
+          320,
+          44
+        ]
+      ]
+    },
+    "tools": {
+      "src": "/guide/assets/mobile-tools-d2b809a74d.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Conserve une copie",
+      "body": "Profil > Exporter mes données > « Export JSON ». Le CSV sert à consulter l’historique.",
+      "highlights": [
+        [
+          200,
+          416,
+          171,
+          47
+        ]
+      ]
+    },
+    "animations": {
+      "src": "/guide/assets/mobile-animations-d2b809a74d.webp",
+      "width": 390,
+      "height": 844,
+      "title": "Télécharge les animations",
+      "body": "Dans Profil, touche « Télécharger les animations hors ligne ». Le bouton disparaît quand tout est téléchargé.",
+      "highlights": [
+        [
+          35,
+          250,
+          320,
+          44
+        ]
+      ]
+    },
+    "update": {
+      "src": "/guide/assets/mobile-update-40619b907a.webp",
+      "width": 342,
+      "height": 238,
+      "title": "Installe quand le message apparaît",
+      "body": "La séance en cours et les saisies sont conservées. Tu peux aussi choisir « Plus tard ».",
+      "highlights": [
+        [
+          23,
+          109,
+          298,
+          55
+        ]
+      ]
+    }
+  },
+  "revision": "mobile-20261028",
+  "pdfPages": 13
+}

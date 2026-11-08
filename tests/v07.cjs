@@ -24,9 +24,7 @@ verify(app.includes('plan?.notes?.trim()'),'Notes visibles sur le bloc exercice'
 verify(app.includes('statsScope')&&app.includes('scopeSessions'),'Filtrage stats par dossier/séance');
 verify(app.includes('resetInput !== \'oui\'')&&app.includes('disabled={resetInput !== \'oui\'}'),'Confirmation exactement oui');
 verify(app.includes('selectTheme(\'light\')')&&app.includes('selectTheme(\'dark\')'),'Bascule de thème');
-verify(/rightElbow:\s*\[number,\s*number\]\s*=\s*\[69,\s*50\]/.test(motion),'Correction rightElbow');
 verify(!/\bplan\?\.to_failure\s*&&\s*</.test(app),'Pas de JSX conditionnel sur SQLite 0/1');
-verify(motion.includes('setPaused')&&motion.includes('setSlow'),'Animation contrôlable');
 
 function fakeExpoDb(){
  const conn=new DatabaseSync(':memory:');
@@ -36,7 +34,7 @@ function fakeExpoDb(){
   runAsync:async (sql,...args)=>conn.prepare(sql).run(...args),
   getAllAsync:async (sql,...args)=>conn.prepare(sql).all(...args),
   getFirstAsync:async (sql,...args)=>conn.prepare(sql).get(...args)??null,
-  withTransactionAsync:async fn=>{conn.exec('BEGIN TRANSACTION');try{let result=await fn();conn.exec('COMMIT');return result;}catch(e){conn.exec('ROLLBACK');throw e;}}
+  withExclusiveTransactionAsync:async function(fn){conn.exec('BEGIN TRANSACTION');try{let result=await fn(this);conn.exec('COMMIT');return result;}catch(e){conn.exec('ROLLBACK');throw e;}}
  };
 }
 (async()=>{

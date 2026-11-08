@@ -69,3 +69,9 @@ App.*.sauvegarde.tsx
 *.sqlite-*
 training-programme-*.json
 training-programme-*.csv
+.neon
+
+.vercel
+.env*
+
+!.env.example

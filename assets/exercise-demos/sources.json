@@ -1,0 +1,1602 @@
+{
+  "bench": {
+    "sourceId": 57472,
+    "title": "Développé couché",
+    "page": "https://www.docteur-fitness.com/developpe-couche",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2019/08/developpe-couche.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1016159
+  },
+  "incline": {
+    "sourceId": 19373,
+    "title": "Développé incliné avec haltères",
+    "page": "https://www.docteur-fitness.com/developpe-incline-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/developpe-incline-halteres-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 664657
+  },
+  "fly": {
+    "sourceId": 19333,
+    "title": "Écartés à la poulie haute",
+    "page": "https://www.docteur-fitness.com/ecartes-a-la-poulie-haute",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/ecarte-poulie-vis-a-vis-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 431068
+  },
+  "shoulder": {
+    "sourceId": 27366,
+    "title": "Développé épaules avec haltères",
+    "page": "https://www.docteur-fitness.com/developpe-epaules-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/developpe-epaule-halteres.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 749565
+  },
+  "lateral": {
+    "sourceId": 20193,
+    "title": "Élévations latérales",
+    "page": "https://www.docteur-fitness.com/elevations-laterales",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/08/elevations-laterales-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 746711
+  },
+  "triceps": {
+    "sourceId": 21275,
+    "title": "Extensions des triceps à la poulie haute à la corde",
+    "page": "https://www.docteur-fitness.com/extensions-des-triceps-a-la-poulie-haute-a-la-corde",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/extension-triceps-poulie-haute-corde.gif",
+    "width": 700,
+    "height": 574,
+    "frames": 12,
+    "bytes": 655245
+  },
+  "pullup": {
+    "sourceId": 26987,
+    "title": "Traction",
+    "page": "https://www.docteur-fitness.com/traction",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/traction-musculation-dos.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 648298
+  },
+  "latpull": {
+    "sourceId": 21622,
+    "title": "Tirage vertical poitrine",
+    "page": "https://www.docteur-fitness.com/tirage-vertical-poitrine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/11/tirage-vertical-poitrine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 879934
+  },
+  "row": {
+    "sourceId": 26995,
+    "title": "Tirage horizontal à la poulie",
+    "page": "https://www.docteur-fitness.com/tirage-horizontal-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/tirage-horizontal-poulie.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 656807
+  },
+  "rowbar": {
+    "sourceId": 20843,
+    "title": "Rowing barre",
+    "page": "https://www.docteur-fitness.com/comment-faire-du-rowing-barre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/09/rowing-barre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 782343
+  },
+  "rear": {
+    "sourceId": 22508,
+    "title": "Oiseau assis sur un banc",
+    "page": "https://www.docteur-fitness.com/oiseau-assis-sur-un-banc",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/oiseau-assis-sur-banc.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 712608
+  },
+  "curl": {
+    "sourceId": 33776,
+    "title": "Curl biceps alterné avec haltères",
+    "page": "https://www.docteur-fitness.com/curl-biceps-avec-halteres-alterne",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/08/curl-biceps-avec-halteres-alterne.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 652115
+  },
+  "curlhammer": {
+    "sourceId": 34168,
+    "title": "Curl haltères prise neutre",
+    "page": "https://www.docteur-fitness.com/curl-haltere-prise-neutre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/09/curl-haltere-prise-neutre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 687252
+  },
+  "squat": {
+    "sourceId": 21613,
+    "title": "Squat",
+    "page": "https://www.docteur-fitness.com/squat",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/11/homme-faisant-un-squat-avec-barre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 730182
+  },
+  "legpress": {
+    "sourceId": 33760,
+    "title": "Presse à cuisses inclinée",
+    "page": "https://www.docteur-fitness.com/presse-a-cuisses-inclinee",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/08/presse-a-cuisses-inclinee.gif",
+    "width": 700,
+    "height": 535,
+    "frames": 12,
+    "bytes": 809535
+  },
+  "rdl": {
+    "sourceId": 29961,
+    "title": "Soulevé de terre roumain",
+    "page": "https://www.docteur-fitness.com/souleve-de-terre-roumain",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/souleve-de-terre-roumain.gif",
+    "width": 700,
+    "height": 650,
+    "frames": 12,
+    "bytes": 794693
+  },
+  "legcurl": {
+    "sourceId": 26997,
+    "title": "Leg curl assis à la machine",
+    "page": "https://www.docteur-fitness.com/leg-curl-assis-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/leg-curl-assis-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1237799
+  },
+  "calves": {
+    "sourceId": 21252,
+    "title": "Extensions des mollets debout à la machine",
+    "page": "https://www.docteur-fitness.com/extensions-des-mollets-debout-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/extension-mollets-debout-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 735539
+  },
+  "plank": {
+    "sourceId": 30999,
+    "title": "Planche",
+    "page": "https://www.docteur-fitness.com/planche",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/05/planche-abdos.gif",
+    "width": 700,
+    "height": 256,
+    "frames": 12,
+    "bytes": 516223
+  },
+  "ex020": {
+    "sourceId": 19194,
+    "title": "Développé couché haltères",
+    "page": "https://www.docteur-fitness.com/developpe-couche-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/05/developpe-couche-halteres-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 783496
+  },
+  "ex021": {
+    "sourceId": 33051,
+    "title": "Développé couché à la Smith machine",
+    "page": "https://www.docteur-fitness.com/developpe-couche-a-la-smith-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/08/developpe-couche-smith-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 874786
+  },
+  "ex024": {
+    "sourceId": 22509,
+    "title": "Développé décliné à la barre",
+    "page": "https://www.docteur-fitness.com/developpe-decline-a-la-barre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/developpe-decline-barre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1008750
+  },
+  "ex025": {
+    "sourceId": 22485,
+    "title": "Développé décliné avec haltère",
+    "page": "https://www.docteur-fitness.com/developpe-decline-avec-haltere",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/developpe-decline-halteres.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 776790
+  },
+  "ex026": {
+    "sourceId": 21254,
+    "title": "Développé incliné à la barre",
+    "page": "https://www.docteur-fitness.com/developpe-incline-a-la-barre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/developpe-incline-barre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 990953
+  },
+  "ex029": {
+    "sourceId": 23176,
+    "title": "Développé couché au sol",
+    "page": "https://www.docteur-fitness.com/developpe-couche-au-sol",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/developpe-couche-au-sol.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 580199
+  },
+  "ex030": {
+    "sourceId": 36694,
+    "title": "Développé assis à la machine pour les pectoraux",
+    "page": "https://www.docteur-fitness.com/developpe-machine-assis-pour-les-pectoraux",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/11/developpe-machine-assis-pectoraux.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 818365
+  },
+  "ex031": {
+    "sourceId": 86109,
+    "title": "Développé couché convergent à la machine",
+    "page": "https://www.docteur-fitness.com/exercice-musculation/developpe-couche-convergent-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2026/10/developpe-couche-convergent-a-la-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1042704
+  },
+  "ex032": {
+    "sourceId": 19292,
+    "title": "Développé incliné à la machine convergente",
+    "page": "https://www.docteur-fitness.com/developpe-incline-a-la-machine-convergente",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/developpe-incline-machine-convergente-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1059212
+  },
+  "ex033": {
+    "sourceId": 86158,
+    "title": "Développé pectoral unilatéral machine",
+    "page": "https://www.docteur-fitness.com/exercice-musculation/developpe-pectoral-unilateral-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2026/10/developpe-pectoral-unilateral-machine.gif",
+    "width": 720,
+    "height": 720,
+    "frames": 12,
+    "bytes": 808008
+  },
+  "ex034": {
+    "sourceId": 34397,
+    "title": "Écartés couché avec haltères",
+    "page": "https://www.docteur-fitness.com/ecartes-couche-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/09/ecarte-couche-haltere.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 884571
+  },
+  "ex035": {
+    "sourceId": 34822,
+    "title": "Écartés incliné avec haltères",
+    "page": "https://www.docteur-fitness.com/ecartes-incline-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/09/ecartes-incline-avec-halteres.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 902369
+  },
+  "ex036": {
+    "sourceId": 19333,
+    "title": "Écartés à la poulie haute",
+    "page": "https://www.docteur-fitness.com/ecartes-a-la-poulie-haute",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/ecarte-poulie-vis-a-vis-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 431068
+  },
+  "ex038": {
+    "sourceId": 34789,
+    "title": "Écarté unilatéral à la poulie",
+    "page": "https://www.docteur-fitness.com/ecarte-unilateral-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/09/ecarte-unilateral-a-la-poulie.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 971248
+  },
+  "ex039": {
+    "sourceId": 19315,
+    "title": "Pec-deck ou butterfly",
+    "page": "https://www.docteur-fitness.com/pec-deck-ou-butterfly",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/pec-deck-butterfly-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 939239
+  },
+  "ex041": {
+    "sourceId": 9723,
+    "title": "Pompes",
+    "page": "https://www.docteur-fitness.com/pourquoi-devrait-on-faire-des-pompes-plus-souvent",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2020/10/pompe-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 961819
+  },
+  "ex049": {
+    "sourceId": 22507,
+    "title": "Pullover avec haltère",
+    "page": "https://www.docteur-fitness.com/pullover-avec-haltere",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/pullover-haltere.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 795616
+  },
+  "ex050": {
+    "sourceId": 27363,
+    "title": "Pull-over à la poulie",
+    "page": "https://www.docteur-fitness.com/pull-over-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/pull-over-poulie.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 798438
+  },
+  "ex051": {
+    "sourceId": 20624,
+    "title": "Traction supination",
+    "page": "https://www.docteur-fitness.com/traction-supination",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/08/chin-up-traction-supination.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 670771
+  },
+  "ex052": {
+    "sourceId": 35497,
+    "title": "Tractions prise neutre",
+    "page": "https://www.docteur-fitness.com/tractions-prise-neutre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/10/traction-prise-neutre.gif",
+    "width": 700,
+    "height": 663,
+    "frames": 12,
+    "bytes": 617544
+  },
+  "ex053": {
+    "sourceId": 26982,
+    "title": "Traction lestée",
+    "page": "https://www.docteur-fitness.com/traction-lestee",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/traction-lestee.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1075297
+  },
+  "ex054": {
+    "sourceId": 26980,
+    "title": "Traction assistée à la machine",
+    "page": "https://www.docteur-fitness.com/traction-assistee-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/traction-assistee-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 841957
+  },
+  "ex055": {
+    "sourceId": 23175,
+    "title": "Traction assistée avec élastique",
+    "page": "https://www.docteur-fitness.com/traction-assistee-avec-elastique",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/traction-assiste-elastique.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 633637
+  },
+  "ex056": {
+    "sourceId": 20641,
+    "title": "Tirage vertical prise serrée",
+    "page": "https://www.docteur-fitness.com/tirage-vertical-prise-serree",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/08/tirage-vertical-prise-serree.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 912981
+  },
+  "ex057": {
+    "sourceId": 23179,
+    "title": "Tirage vertical prise inversée",
+    "page": "https://www.docteur-fitness.com/tirage-vertical-prise-inversee",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/tirage-vertical-prise-inversee.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 704776
+  },
+  "ex059": {
+    "sourceId": 86146,
+    "title": "Tirage vertical unilatéral à la corde",
+    "page": "https://www.docteur-fitness.com/exercice-musculation/tirage-vertical-unilateral-a-la-corde",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2026/10/tirage-vertical-unilateral-a-la-corde.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 613730
+  },
+  "ex060": {
+    "sourceId": 27363,
+    "title": "Pull-over à la poulie",
+    "page": "https://www.docteur-fitness.com/pull-over-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/pull-over-poulie.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 798438
+  },
+  "ex061": {
+    "sourceId": 20462,
+    "title": "Rowing « T-bar »",
+    "page": "https://www.docteur-fitness.com/rowing-t-bar",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/08/rowing-barre-t-landmine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 525981
+  },
+  "ex062": {
+    "sourceId": 25017,
+    "title": "Rowing à la barre en T avec machine",
+    "page": "https://www.docteur-fitness.com/rowing-a-la-barre-en-t-avec-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/rowing-t-bar-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 851933
+  },
+  "ex063": {
+    "sourceId": 20499,
+    "title": "Rowing haltère à un bras",
+    "page": "https://www.docteur-fitness.com/rowing-haltere-a-un-bras",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/08/rowing-haltere-un-bras.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 759757
+  },
+  "ex064": {
+    "sourceId": 35495,
+    "title": "Rowing avec haltères",
+    "page": "https://www.docteur-fitness.com/bent-over-row-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/10/bent-over-row-avec-halteres.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 943942
+  },
+  "ex067": {
+    "sourceId": 25030,
+    "title": "Tractions australiennes",
+    "page": "https://www.docteur-fitness.com/tractions-australiennes",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/traction-australienne-rowing-poids-du-corps.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 881575
+  },
+  "ex069": {
+    "sourceId": 26995,
+    "title": "Tirage horizontal à la poulie",
+    "page": "https://www.docteur-fitness.com/tirage-horizontal-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/tirage-horizontal-poulie.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 656807
+  },
+  "ex070": {
+    "sourceId": 35143,
+    "title": "Tirage horizontal prise large",
+    "page": "https://www.docteur-fitness.com/tirage-horizontal-prise-large",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/10/tirage-horizontal-prise-large.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 801182
+  },
+  "ex071": {
+    "sourceId": 25025,
+    "title": "Rowing en prise neutre assis à la machine",
+    "page": "https://www.docteur-fitness.com/rowing-assis-a-la-machine-en-prise-neutre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/rowing-assis-machine-hammer-strenght.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 757152
+  },
+  "ex076": {
+    "sourceId": 23182,
+    "title": "Face pull",
+    "page": "https://www.docteur-fitness.com/face-pull",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/face-pull.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 975227
+  },
+  "ex078": {
+    "sourceId": 36856,
+    "title": "Shrugs avec haltères",
+    "page": "https://www.docteur-fitness.com/shrugs-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/11/shrugs-avec-halteres.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 661019
+  },
+  "ex079": {
+    "sourceId": 25013,
+    "title": "Shrug barre",
+    "page": "https://www.docteur-fitness.com/shrug-barre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/shrug-barre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 833868
+  },
+  "ex081": {
+    "sourceId": 20475,
+    "title": "Extension lombaire au banc à 45°",
+    "page": "https://www.docteur-fitness.com/extension-lombaire-au-banc-a-45",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/08/extension-lombaire-au-banc-45.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1023969
+  },
+  "ex082": {
+    "sourceId": 27365,
+    "title": "Superman",
+    "page": "https://www.docteur-fitness.com/superman",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/superman.gif",
+    "width": 700,
+    "height": 243,
+    "frames": 12,
+    "bytes": 497686
+  },
+  "ex083": {
+    "sourceId": 25022,
+    "title": "Good morning",
+    "page": "https://www.docteur-fitness.com/good-morning",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/good-morning-exercice.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 693068
+  },
+  "ex084": {
+    "sourceId": 23156,
+    "title": "Soulevé de terre",
+    "page": "https://www.docteur-fitness.com/souleve-de-terre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/souleve-de-terre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 754498
+  },
+  "ex085": {
+    "sourceId": 21011,
+    "title": "Soulevé de terre sumo",
+    "page": "https://www.docteur-fitness.com/souleve-de-terre-sumo",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/souleve-de-terre-sumo.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 980582
+  },
+  "ex086": {
+    "sourceId": 20062,
+    "title": "Développé militaire",
+    "page": "https://www.docteur-fitness.com/developpe-militaire",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/08/developpe-militaire-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 716259
+  },
+  "ex088": {
+    "sourceId": 33068,
+    "title": "Développé épaules à la Smith machine",
+    "page": "https://www.docteur-fitness.com/developpe-epaules-a-la-smith-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/08/developpe-epaules-smith-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 846412
+  },
+  "ex089": {
+    "sourceId": 20165,
+    "title": "Développé Arnold",
+    "page": "https://www.docteur-fitness.com/developpe-arnold",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/08/developpe-arnold-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 790565
+  },
+  "ex090": {
+    "sourceId": 36879,
+    "title": "Développé épaules à la machine",
+    "page": "https://www.docteur-fitness.com/developpe-epaules-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/11/developpe-epaules-a-la-machine-shoulder-press.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1106085
+  },
+  "ex093": {
+    "sourceId": 26990,
+    "title": "Élévations latérales à la poulie",
+    "page": "https://www.docteur-fitness.com/elevations-laterales-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/elevations-laterales-poulie.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 900133
+  },
+  "ex094": {
+    "sourceId": 27367,
+    "title": "Élévations latérales à la machine",
+    "page": "https://www.docteur-fitness.com/elevations-laterales-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/elevation-laterale-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1055763
+  },
+  "ex097": {
+    "sourceId": 20249,
+    "title": "Élévations frontales",
+    "page": "https://www.docteur-fitness.com/elevations-frontales",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/08/elevations-frontales-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 692252
+  },
+  "ex099": {
+    "sourceId": 30005,
+    "title": "Élévations frontales à la poulie basse",
+    "page": "https://www.docteur-fitness.com/elevations-frontales-a-la-poulie-basse",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/elevation-frontale-poulie-basse.gif",
+    "width": 700,
+    "height": 558,
+    "frames": 12,
+    "bytes": 744609
+  },
+  "ex101": {
+    "sourceId": 75099,
+    "title": "Élévation en Y à la poulie",
+    "page": "https://www.docteur-fitness.com/elevation-en-y-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2025/11/elevation-en-y-a-la-poulie.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1207690
+  },
+  "ex102": {
+    "sourceId": 75119,
+    "title": "Oiseau à la poulie à 45°",
+    "page": "https://www.docteur-fitness.com/oiseau-a-la-poulie-a-45",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2025/11/oiseau-a-la-poulie-a-45.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 818729
+  },
+  "ex103": {
+    "sourceId": 22505,
+    "title": "Pec deck inversé",
+    "page": "https://www.docteur-fitness.com/pec-deck-inverse",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/pec-deck-inverse.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1015560
+  },
+  "ex105": {
+    "sourceId": 22505,
+    "title": "Pec deck inversé",
+    "page": "https://www.docteur-fitness.com/pec-deck-inverse",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/pec-deck-inverse.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1015560
+  },
+  "ex108": {
+    "sourceId": 30009,
+    "title": "Rotation externe de l’épaule à la poulie",
+    "page": "https://www.docteur-fitness.com/rotation-externe-de-lepaule-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/rotation-externe-epaule-poulie.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 858620
+  },
+  "ex109": {
+    "sourceId": 67529,
+    "title": "Rotations externes de l’épaule avec élastique",
+    "page": "https://www.docteur-fitness.com/rotations-externes-de-lepaule-avec-elastique",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2024/05/rotation-externe-epaule-exercice-renforcement-elastique.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 517348
+  },
+  "ex110": {
+    "sourceId": 75115,
+    "title": "Rotation interne à 90° à la poulie",
+    "page": "https://www.docteur-fitness.com/rotation-interne-a-90-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2025/11/rotation-interne-a-90-a-la-poulie.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 18,
+    "bytes": 713684
+  },
+  "ex111": {
+    "sourceId": 31003,
+    "title": "Rotation externe de l’épaule couchée avec haltère",
+    "page": "https://www.docteur-fitness.com/rotation-externe-de-lepaule-couchee-avec-haltere",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/06/rotation-externe-epaule-haltere.gif",
+    "width": 700,
+    "height": 460,
+    "frames": 12,
+    "bytes": 991431
+  },
+  "ex112": {
+    "sourceId": 20878,
+    "title": "Curl à la barre",
+    "page": "https://www.docteur-fitness.com/curl-a-la-barre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/09/curl-barre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 848503
+  },
+  "ex114": {
+    "sourceId": 24476,
+    "title": "Curl biceps assis à la machine",
+    "page": "https://www.docteur-fitness.com/curl-biceps-assis-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/curl-pupitre-machine-prechargee.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1188246
+  },
+  "ex115": {
+    "sourceId": 21194,
+    "title": "Curl biceps à la poulie basse",
+    "page": "https://www.docteur-fitness.com/curl-biceps-a-la-poulie-basse",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/curl-biceps-poulie-basse.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 829703
+  },
+  "ex116": {
+    "sourceId": 20964,
+    "title": "Curl à la poulie vis-à-vis",
+    "page": "https://www.docteur-fitness.com/curl-a-la-poulie-vis-a-vis",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/curl-poulie-vis-a-vis.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 697332
+  },
+  "ex118": {
+    "sourceId": 24479,
+    "title": "Curl pupitre barre EZ",
+    "page": "https://www.docteur-fitness.com/curl-pupitre-barre-ez",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/curl-au-pupitre-barre-ez-larry-scott.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 980471
+  },
+  "ex119": {
+    "sourceId": 86149,
+    "title": "Curl pupitre unilatéral machine",
+    "page": "https://www.docteur-fitness.com/exercice-musculation/curl-pupitre-unilateral-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2026/10/curl-pupitre-unilateral-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1039376
+  },
+  "ex120": {
+    "sourceId": 21208,
+    "title": "Curl haltère incliné avec rotation",
+    "page": "https://www.docteur-fitness.com/curl-haltere-incline",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/curl-haltere-incline.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1185625
+  },
+  "ex121": {
+    "sourceId": 20916,
+    "title": "Curl concentré",
+    "page": "https://www.docteur-fitness.com/curl-concentre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/09/curl-concentre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 933459
+  },
+  "ex124": {
+    "sourceId": 23178,
+    "title": "Curl Zottman",
+    "page": "https://www.docteur-fitness.com/curl-zottman",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/curl-zottman.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 24,
+    "bytes": 973117
+  },
+  "ex132": {
+    "sourceId": 21275,
+    "title": "Extensions des triceps à la poulie haute à la corde",
+    "page": "https://www.docteur-fitness.com/extensions-des-triceps-a-la-poulie-haute-a-la-corde",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/extension-triceps-poulie-haute-corde.gif",
+    "width": 700,
+    "height": 574,
+    "frames": 12,
+    "bytes": 655245
+  },
+  "ex138": {
+    "sourceId": 37348,
+    "title": "Extensions des triceps assis avec haltère",
+    "page": "https://www.docteur-fitness.com/extensions-des-triceps-assis-avec-haltere",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/12/extensions-des-triceps-assis-avec-haltere.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 667122
+  },
+  "ex139": {
+    "sourceId": 34842,
+    "title": "Extensions verticales à deux mains avec haltère",
+    "page": "https://www.docteur-fitness.com/extensions-verticales-a-deux-mains-avec-haltere",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/09/extensions-verticales-a-deux-mains-avec-haltere.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 734489
+  },
+  "ex140": {
+    "sourceId": 30001,
+    "title": "Extension verticale assis à la barre",
+    "page": "https://www.docteur-fitness.com/extension-verticale-assis-a-la-barre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/extension-verticale-assis-barre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 796524
+  },
+  "ex141": {
+    "sourceId": 20899,
+    "title": "Barre front",
+    "page": "https://www.docteur-fitness.com/barre-front",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/09/barre-front.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 924131
+  },
+  "ex142": {
+    "sourceId": 37320,
+    "title": "Extensions des triceps couché avec haltères",
+    "page": "https://www.docteur-fitness.com/extensions-des-triceps-couche-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/12/extensions-triceps-couche-halteres.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1043833
+  },
+  "ex144": {
+    "sourceId": 37458,
+    "title": "Kickback debout avec haltères",
+    "page": "https://www.docteur-fitness.com/kickback-debout-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/12/kickback-debout-avec-halteres.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 934312
+  },
+  "ex147": {
+    "sourceId": 30015,
+    "title": "Dips assistés à la machine",
+    "page": "https://www.docteur-fitness.com/dips-assistes-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/dips-assiste-machine.gif",
+    "width": 700,
+    "height": 658,
+    "frames": 12,
+    "bytes": 658634
+  },
+  "ex148": {
+    "sourceId": 30903,
+    "title": "Dips entre deux bancs",
+    "page": "https://www.docteur-fitness.com/dips-entre-deux-bancs",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/05/dips-entre-deux-bancs.gif",
+    "width": 700,
+    "height": 576,
+    "frames": 12,
+    "bytes": 921257
+  },
+  "ex150": {
+    "sourceId": 36981,
+    "title": "Développé couché prise serrée à la Smith machine",
+    "page": "https://www.docteur-fitness.com/developpe-couche-prise-serree-smith-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/11/developpe-couche-prise-serree-smith-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 758521
+  },
+  "ex151": {
+    "sourceId": 26217,
+    "title": "Extensions des triceps à la machine Technogym",
+    "page": "https://www.docteur-fitness.com/extensions-des-triceps-a-la-machine-technogym",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/extension-triceps-machine-technogym.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1303136
+  },
+  "ex152": {
+    "sourceId": 22506,
+    "title": "Squat barre devant",
+    "page": "https://www.docteur-fitness.com/squat-barre-devant",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/11/squat-barre-devant-front.gif",
+    "width": 540,
+    "height": 540,
+    "frames": 12,
+    "bytes": 487019
+  },
+  "ex153": {
+    "sourceId": 19573,
+    "title": "Goblet squat avec haltère",
+    "page": "https://www.docteur-fitness.com/goblet-squat",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/squat-goblet-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 582908
+  },
+  "ex154": {
+    "sourceId": 37591,
+    "title": "Squat sumo avec haltère",
+    "page": "https://www.docteur-fitness.com/squat-sumo-avec-haltere",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/12/squat-sumo-avec-haltere.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 560417
+  },
+  "ex155": {
+    "sourceId": 29798,
+    "title": "Squat à la Smith machine",
+    "page": "https://www.docteur-fitness.com/squat-a-la-smith-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/squat-smith-machine-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 576464
+  },
+  "ex156": {
+    "sourceId": 24482,
+    "title": "Hack squat",
+    "page": "https://www.docteur-fitness.com/hack-squat",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/hack-squat.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 746077
+  },
+  "ex158": {
+    "sourceId": 23158,
+    "title": "Zercher Squat",
+    "page": "https://www.docteur-fitness.com/zercher-squat",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/zercher-squat.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 697456
+  },
+  "ex159": {
+    "sourceId": 22484,
+    "title": "Overhead squat",
+    "page": "https://www.docteur-fitness.com/overhead-squat",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/overhead-squat.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 645488
+  },
+  "ex162": {
+    "sourceId": 21271,
+    "title": "Squat sur banc",
+    "page": "https://www.docteur-fitness.com/squat-sur-banc",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/squat-sur-banc.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 815162
+  },
+  "ex163": {
+    "sourceId": 26981,
+    "title": "Sissy squat sans machine",
+    "page": "https://www.docteur-fitness.com/sissy-squat",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/sissy-squat.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 552651
+  },
+  "ex164": {
+    "sourceId": 24461,
+    "title": "Squat avec landmine",
+    "page": "https://www.docteur-fitness.com/squat-avec-landmine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/squat-landmine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 547067
+  },
+  "ex166": {
+    "sourceId": 26996,
+    "title": "Presse à cuisses iso-latérale",
+    "page": "https://www.docteur-fitness.com/presse-a-cuisses-iso-laterale",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/presse-cuisse-iso-laterale-hammer-stenght.gif",
+    "width": 699,
+    "height": 543,
+    "frames": 24,
+    "bytes": 1463394
+  },
+  "ex167": {
+    "sourceId": 19450,
+    "title": "Presse à cuisses horizontale",
+    "page": "https://www.docteur-fitness.com/presse-a-cuisses-horizontale",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/presse-a-cuisse-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 840016
+  },
+  "ex168": {
+    "sourceId": 19421,
+    "title": "Leg extension",
+    "page": "https://www.docteur-fitness.com/leg-extension",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/leg-extension-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1098031
+  },
+  "ex169": {
+    "sourceId": 26999,
+    "title": "Leg extension iso latéral unilatéral Hammer strenght",
+    "page": "https://www.docteur-fitness.com/leg-extension-iso-lateral-unilateral-hammer-strenght",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/leg-extension-iso-lateral-unilateral-hammer-strenght.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 947682
+  },
+  "ex170": {
+    "sourceId": 19495,
+    "title": "Fentes avant avec haltères",
+    "page": "https://www.docteur-fitness.com/fentes-avant-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/fentes-avant-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 733910
+  },
+  "ex176": {
+    "sourceId": 19434,
+    "title": "Squat bulgare avec haltères",
+    "page": "https://www.docteur-fitness.com/squat-bulgare-avec-halteres",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/squat-bulgare-halteres-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 842564
+  },
+  "ex178": {
+    "sourceId": 19398,
+    "title": "Montées sur banc",
+    "page": "https://www.docteur-fitness.com/montees-sur-banc",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/montees-sur-banc-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 495064
+  },
+  "ex180": {
+    "sourceId": 21620,
+    "title": "Squat statique contre un mur (exercice de la chaise)",
+    "page": "https://www.docteur-fitness.com/squat-statique-contre-un-mur-exercice-de-la-chaise",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/squat-statique-contre-mur-exercice-chaise.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 732514
+  },
+  "ex182": {
+    "sourceId": 29859,
+    "title": "Soulevé de terre jambes tendues",
+    "page": "https://www.docteur-fitness.com/souleve-de-terre-jambes-tendues",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/souleve-de-terre-jambes-tendues.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1134171
+  },
+  "ex185": {
+    "sourceId": 21013,
+    "title": "Leg curl allongé",
+    "page": "https://www.docteur-fitness.com/leg-curl-allonge",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/leg-curl-allonge.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 683519
+  },
+  "ex186": {
+    "sourceId": 21249,
+    "title": "Leg curl unilatéral debout à la machine",
+    "page": "https://www.docteur-fitness.com/leg-curl-unilateral-debout-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/leg-curl-unilateral-debout-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 739428
+  },
+  "ex188": {
+    "sourceId": 21250,
+    "title": "Leg curl au ballon de gym",
+    "page": "https://www.docteur-fitness.com/leg-curl-au-ballon-de-gym",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/12/leg-curl-ballon-gym.gif",
+    "width": 700,
+    "height": 402,
+    "frames": 12,
+    "bytes": 630943
+  },
+  "ex191": {
+    "sourceId": 22493,
+    "title": "Kettlebell swing",
+    "page": "https://www.docteur-fitness.com/kettlebell-swing",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/kettlebell-swing.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 534597
+  },
+  "ex192": {
+    "sourceId": 30989,
+    "title": "Pull through à la poulie",
+    "page": "https://www.docteur-fitness.com/pull-through-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/05/pull-through-a-la-poulie.gif",
+    "width": 700,
+    "height": 679,
+    "frames": 12,
+    "bytes": 753409
+  },
+  "ex194": {
+    "sourceId": 21255,
+    "title": "Hip thrust",
+    "page": "https://www.docteur-fitness.com/hip-thrust",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/hips-thrust.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1079034
+  },
+  "ex195": {
+    "sourceId": 33772,
+    "title": "Hip thrust à la machine",
+    "page": "https://www.docteur-fitness.com/hip-thrust-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/08/hip-thrust-a-la-machine.gif",
+    "width": 700,
+    "height": 508,
+    "frames": 12,
+    "bytes": 969147
+  },
+  "ex196": {
+    "sourceId": 33390,
+    "title": "Hip thrust à la smith machine",
+    "page": "https://www.docteur-fitness.com/hip-thrust-a-la-smith-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/08/hip-thrust-a-la-smith-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 800309
+  },
+  "ex202": {
+    "sourceId": 68202,
+    "title": "Abduction de la hanche assis avec élastique",
+    "page": "https://www.docteur-fitness.com/abduction-de-la-hanche-assis-avec-elastique",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2024/07/abduction-de-la-hanche-assis-avec-elastique.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 586994
+  },
+  "ex204": {
+    "sourceId": 31078,
+    "title": "Extension de la hanche à la poulie basse",
+    "page": "https://www.docteur-fitness.com/extension-de-la-hanche-a-la-poulie-basse",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/05/extension-hanche-poulie-basse.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 900831
+  },
+  "ex205": {
+    "sourceId": 75168,
+    "title": "Extension de hanche à la machine",
+    "page": "https://www.docteur-fitness.com/extension-de-hanche-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2025/11/extension-hanche-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1291012
+  },
+  "ex208": {
+    "sourceId": 33785,
+    "title": "Marche avec élastique",
+    "page": "https://www.docteur-fitness.com/marche-avec-elastique",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/08/marche-avec-elastique.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 18,
+    "bytes": 1157027
+  },
+  "ex209": {
+    "sourceId": 21251,
+    "title": "Extension des mollets assis à la machine",
+    "page": "https://www.docteur-fitness.com/extension-des-mollets-assis-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/extension-mollets-assis-machine.gif",
+    "width": 700,
+    "height": 625,
+    "frames": 12,
+    "bytes": 873419
+  },
+  "ex210": {
+    "sourceId": 21001,
+    "title": "Extension des mollets à la barre debout",
+    "page": "https://www.docteur-fitness.com/extension-des-mollets-a-la-barre-debout",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/extension-mollets-barre-debout.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 902896
+  },
+  "ex211": {
+    "sourceId": 33468,
+    "title": "Extensions des mollets debout à la Smith machine",
+    "page": "https://www.docteur-fitness.com/extensions-des-mollets-debout-a-la-smith-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/08/extension-mollets-smith-machine.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 743623
+  },
+  "ex212": {
+    "sourceId": 21015,
+    "title": "Extension des mollets à la presse",
+    "page": "https://www.docteur-fitness.com/extension-des-mollets-a-la-presse",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/extension-mollets-presse-45.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 950447
+  },
+  "ex214": {
+    "sourceId": 21274,
+    "title": "Extensions des mollets sur une marche",
+    "page": "https://www.docteur-fitness.com/extensions-des-mollets-sur-une-marche",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/10/extension-mollets-sur-marche.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 597626
+  },
+  "ex215": {
+    "sourceId": 26998,
+    "title": "Élévations des mollets au Donkey",
+    "page": "https://www.docteur-fitness.com/elevations-des-mollets-au-donkey",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/extension-des-mollets-donkey.gif",
+    "width": 700,
+    "height": 575,
+    "frames": 12,
+    "bytes": 1158926
+  },
+  "ex217": {
+    "sourceId": 19959,
+    "title": "Crunch",
+    "page": "https://www.docteur-fitness.com/crunch-au-sol",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/07/crunch-au-sol-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 938534
+  },
+  "ex218": {
+    "sourceId": 19633,
+    "title": "Crunch à la poulie",
+    "page": "https://www.docteur-fitness.com/crunch-a-la-poulie",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/crunch-poulie-haute-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 810866
+  },
+  "ex219": {
+    "sourceId": 29807,
+    "title": "Crunch à la machine",
+    "page": "https://www.docteur-fitness.com/crunch-a-la-machine",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/crunch-machine-abdos.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1154189
+  },
+  "ex220": {
+    "sourceId": 19697,
+    "title": "Crunch sur swiss ball",
+    "page": "https://www.docteur-fitness.com/crunch-sur-swiss-ball",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/07/crunch-swiss-ball-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 863913
+  },
+  "ex222": {
+    "sourceId": 19936,
+    "title": "Relevé de genoux suspendu",
+    "page": "https://www.docteur-fitness.com/releve-de-genoux-suspendu",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/07/releve-de-genoux-suspendu-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 667507
+  },
+  "ex223": {
+    "sourceId": 25019,
+    "title": "Relevé de jambes suspendu",
+    "page": "https://www.docteur-fitness.com/releve-de-jambes-suspendu",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/releve-de-jambes-suspendu.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 1011545
+  },
+  "ex226": {
+    "sourceId": 26218,
+    "title": "Roulette à abdominaux",
+    "page": "https://www.docteur-fitness.com/roulette-a-abdominaux",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/02/roulette-abdominaux.gif",
+    "width": 700,
+    "height": 351,
+    "frames": 12,
+    "bytes": 445951
+  },
+  "ex227": {
+    "sourceId": 25024,
+    "title": "Planche latérale",
+    "page": "https://www.docteur-fitness.com/planche-laterale",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/01/planche-laterale-obliques.gif",
+    "width": 700,
+    "height": 345,
+    "frames": 12,
+    "bytes": 143506
+  },
+  "ex229": {
+    "sourceId": 29969,
+    "title": "Hollow hold",
+    "page": "https://www.docteur-fitness.com/hollow-hold",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/hollow-hold.gif",
+    "width": 700,
+    "height": 307,
+    "frames": 12,
+    "bytes": 203372
+  },
+  "ex230": {
+    "sourceId": 36625,
+    "title": "Dead bug",
+    "page": "https://www.docteur-fitness.com/dead-bug",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/11/dead-bug.gif",
+    "width": 700,
+    "height": 318,
+    "frames": 24,
+    "bytes": 1059037
+  },
+  "ex231": {
+    "sourceId": 29985,
+    "title": "Bird dog",
+    "page": "https://www.docteur-fitness.com/bird-dog",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/bird-dog.gif",
+    "width": 700,
+    "height": 299,
+    "frames": 24,
+    "bytes": 1124173
+  },
+  "ex232": {
+    "sourceId": 30011,
+    "title": "Rotations russes",
+    "page": "https://www.docteur-fitness.com/rotations-russes",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/rotations-russes-obliques.gif",
+    "width": 700,
+    "height": 414,
+    "frames": 24,
+    "bytes": 943649
+  },
+  "ex236": {
+    "sourceId": 19613,
+    "title": "Mountain climber",
+    "page": "https://www.docteur-fitness.com/mountain-climber",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2000/06/mountain-climber-exercice-musculation.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 24,
+    "bytes": 1212676
+  },
+  "ex237": {
+    "sourceId": 31122,
+    "title": "Crunch bicyclette",
+    "page": "https://www.docteur-fitness.com/crunch-bicyclette",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/05/exercice-abdos-bicyclette.gif",
+    "width": 700,
+    "height": 382,
+    "frames": 24,
+    "bytes": 1645554
+  },
+  "ex238": {
+    "sourceId": 32222,
+    "title": "Dragon flag",
+    "page": "https://www.docteur-fitness.com/dragon-flag",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/07/dragon-flag.gif",
+    "width": 700,
+    "height": 674,
+    "frames": 24,
+    "bytes": 1323377
+  },
+  "ex239": {
+    "sourceId": 86079,
+    "title": "Flexion des poignets à la barre",
+    "page": "https://www.docteur-fitness.com/exercice-musculation/flexion-des-poignets-a-la-barre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2026/10/flexion-poignets-barre.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 945699
+  },
+  "ex240": {
+    "sourceId": 86073,
+    "title": "Extension des poignets à la barre",
+    "page": "https://www.docteur-fitness.com/exercice-musculation/extension-des-poignets-a-la-barre",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2026/10/extension-poignet-barre.gif",
+    "width": 700,
+    "height": 606,
+    "frames": 12,
+    "bytes": 826572
+  },
+  "ex244": {
+    "sourceId": 75060,
+    "title": "Dead Hang (suspension passive)",
+    "page": "https://www.docteur-fitness.com/dead-hang-suspension-passive",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2025/11/dead-hang-suspension-passive.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 24,
+    "bytes": 1536927
+  },
+  "ex250": {
+    "sourceId": 32575,
+    "title": "Vélo elliptique",
+    "page": "https://www.docteur-fitness.com/velo-elliptique",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/08/velo-elliptique.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 965626
+  },
+  "ex251": {
+    "sourceId": 32323,
+    "title": "Rameur",
+    "page": "https://www.docteur-fitness.com/rameur",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/07/rameur.gif",
+    "width": 700,
+    "height": 474,
+    "frames": 24,
+    "bytes": 1686568
+  },
+  "ex253": {
+    "sourceId": 32160,
+    "title": "Corde à sauter",
+    "page": "https://www.docteur-fitness.com/corde-a-sauter",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/07/corde-a-sauter.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 516081
+  },
+  "ex254": {
+    "sourceId": 416,
+    "title": "Burpees",
+    "page": "https://www.docteur-fitness.com/burpees-bienfaits-methode",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2019/08/burpee-muscle-sollicites.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 42,
+    "bytes": 1279195
+  },
+  "ex255": {
+    "sourceId": 32172,
+    "title": "Assault bike",
+    "page": "https://www.docteur-fitness.com/assault-air-bike",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/07/assault-air-bike.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 936179
+  },
+  "ex256": {
+    "sourceId": 21257,
+    "title": "SkiErg",
+    "page": "https://www.docteur-fitness.com/ergometre-de-ski",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2021/12/ergometre-de-ski.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 18,
+    "bytes": 1119512
+  },
+  "ex133": {
+    "sourceId": 29979,
+    "title": "Extensions verticales à la poulie haute",
+    "page": "https://www.docteur-fitness.com/extensions-verticales-a-la-poulie-haute",
+    "media": "https://www.docteur-fitness.com/wp-content/uploads/2022/04/extension-triceps-poulie-haute.gif",
+    "width": 700,
+    "height": 700,
+    "frames": 12,
+    "bytes": 763855
+  }
+}

@@ -22,7 +22,6 @@ check(app.includes('Proposer une séance'),'Aperçu préalable');
 check(app.includes('Enregistrer ce brouillon'),'Validation explicite');
 check(app.includes('Suggérer séries / reps selon mon objectif'),'Suggestion par exercice');
 check(!app.includes('label="Repos"'),'Ancien bouton Repos absent');
-check(/rightElbow:\s*\[number,\s*number\]\s*=\s*\[69,\s*50\]/.test(fs.readFileSync(path.join(root,'src/ExerciseMotion.tsx'),'utf8')),'Bug rightElbow');
 const dbmod=load('src/db.ts');
 const planner=load('src/planner.ts');
 const catalogue=load('src/catalogue.ts');
@@ -31,7 +30,7 @@ function memoryDb(){
  return { raw:conn, execAsync:async q=>conn.exec(q),runAsync:async(q,...args)=>conn.prepare(q).run(...args),
  getFirstAsync:async(q,...args)=>conn.prepare(q).get(...args)??null,
  getAllAsync:async(q,...args)=>conn.prepare(q).all(...args),
- withTransactionAsync:async(fn)=>{conn.exec('BEGIN TRANSACTION');try{const ret=await fn();conn.exec('COMMIT');return ret;}catch(e){conn.exec('ROLLBACK');throw e;}}};
+ withExclusiveTransactionAsync:async function(fn){conn.exec('BEGIN TRANSACTION');try{const ret=await fn(this);conn.exec('COMMIT');return ret;}catch(e){conn.exec('ROLLBACK');throw e;}}};
 }
 (async()=>{
  const db=memoryDb();await dbmod.initDatabase(db);

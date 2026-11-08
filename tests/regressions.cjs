@@ -19,8 +19,7 @@ const app=syntax('App.tsx').source;
 const motion=syntax('src/ExerciseMotion.tsx').source;
 syntax('src/db.ts');
 const helper=syntax('src/supersets.ts');
-check(/rightElbow:\s*\[number,\s*number\]\s*=\s*\[69,\s*50\]/.test(motion),
-  'Régression de ExerciseMotion : le coude droit doit être initialisé');
+// Les coordonnées SVG ont été remplacées par des GIF : tests/exercise-demos.cjs.
 check(!/\bplan\?\.to_failure\s*&&\s*</.test(app),
   'Condition numérique JSX: utilisez une condition booléenne ou ternaire pour to_failure');
 check(!/\bplan\?\.superset_group\s*&&\s*</.test(app),

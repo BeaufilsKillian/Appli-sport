@@ -16,10 +16,16 @@ export const C = {
 export const radii = { card: 16, button: 12, pill: 100 };
 export const fmt = (v: number, digits = 0) =>
   new Intl.NumberFormat('fr-FR', { maximumFractionDigits: digits }).format(v);
+export const minutesLabel = (minutes: number) => {
+  const total = Math.max(0, Math.round(minutes));
+  const hours = Math.floor(total / 60);
+  const remainder = total % 60;
+  return hours ? `${hours} h${remainder ? ` ${remainder}` : ''}` : `${remainder} min`;
+};
 export const shortDate = (ms: number) =>
   new Date(ms).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 export const durationLabel = (seconds: number) =>
-  `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
+  `${Math.floor(seconds / 3600).toString().padStart(2, '0')}:${Math.floor(seconds / 60 % 60).toString().padStart(2, '0')}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
 
 export const LIGHT_C: typeof C = {
   background: '#F5F7FA', surface: '#FFFFFF', surfaceRaised: '#E7EDF6',

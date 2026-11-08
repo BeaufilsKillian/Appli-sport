@@ -13,13 +13,13 @@ export type SuggestedWorkout = {
   warmup_minutes: number; cooldown_minutes: number; goal: Goal;
 };
 
-export const GOALS: Array<{id:Goal; label:string}> = [
+export const GOALS: {id:Goal; label:string}[] = [
   {id:'strength',label:'Force'},
   {id:'hypertrophy',label:'Prise de masse musculaire'},
   {id:'endurance',label:'Endurance musculaire'},
   {id:'cut',label:'Sèche (maintien musculaire)'},
 ];
-export const LEVELS: Array<{id:Experience;label:string}> = [
+export const LEVELS: {id:Experience;label:string}[] = [
   {id:'beginner',label:'Débutant'}, {id:'intermediate',label:'Intermédiaire'},
   {id:'advanced',label:'Avancé'},
 ];
@@ -46,6 +46,11 @@ const PRIORITY:Record<string,string[]>={
   'Avant-bras':['ex243','ex239','ex241','ex244','ex245','ex246'],
 };
 export const COACH_MUSCLES=Object.keys(PRIORITY);
+const MUSCLE_ORDER:Record<string,number>={
+  'Pectoraux':0, 'Dos':1, 'Jambes':2, 'Quadriceps':3, 'Ischio-jambiers':4,
+  'Fessiers':5, 'Mollets':6, 'Épaules':7, 'Biceps':8, 'Triceps':9,
+  'Avant-bras':10, 'Abdos':100,
+};
 
 export function proposeExercise(exercise:Pick<Exercise,'id'|'name'|'muscle'|'pattern'>, goal:Goal,
   level:Experience='intermediate', age?:number): Omit<SuggestedExercise,'estimated_minutes'> {
@@ -70,16 +75,18 @@ export function proposeExercise(exercise:Pick<Exercise,'id'|'name'|'muscle'|'pat
     compound?'Mouvement polyarticulaire':'Mouvement complémentaire'};
 }
 
+export const estimateSetSeconds = (reps: number): number => Math.max(30, Math.min(100, reps * 3 + 15));
+
 export function estimateExerciseMinutes(sets:number,reps:number,restSeconds:number):number {
   // Par serie : installation/transition + execution; temps de repos entre series.
-  const working=sets*(Math.max(30,Math.min(100,reps*3+15))/60);
+  const working=sets*estimateSetSeconds(reps)/60;
   return +(working+Math.max(0,sets-1)*restSeconds/60+2).toFixed(1);
 }
 
 export function generateWorkout(exercises:Exercise[], chosenMuscles:string[], targetMinutes:number,
   goal:Goal, level:Experience='intermediate', age?:number): SuggestedWorkout {
   const minutes=Math.round(Number(targetMinutes));
-  if (!Number.isFinite(minutes)||minutes<25||minutes>180) throw new Error('La duree doit etre comprise entre 25 et 180 minutes.');
+  if (!Number.isFinite(minutes)||minutes<25||minutes>180) throw new Error('La durée doit être comprise entre 25 min et 3 h.');
   const muscles=Array.from(new Set(chosenMuscles.filter(m=>COACH_MUSCLES.includes(m))));
   if (!muscles.length||muscles.length>3) throw new Error('Choisis de 1 a 3 groupes musculaires.');
   const warmup=minutes<50?6:10;
@@ -122,5 +129,8 @@ export function generateWorkout(exercises:Exercise[], chosenMuscles:string[], ta
       if(spent+extra<=minutes){item.sets++;item.estimated_minutes=newDur;spent+=extra;changed=true;}
     }
   }
+  // Conserver la sélection équilibrée et son budget, puis regrouper les
+  // exercices : grands groupes, bras, abdos. L'ordre interne reste inchangé.
+  items.sort((a,b)=>(MUSCLE_ORDER[a.muscle]??90)-(MUSCLE_ORDER[b.muscle]??90));
   return {items,target_minutes:minutes,estimated_minutes:Math.ceil(spent),warmup_minutes:warmup,cooldown_minutes:cooldown,goal};
 }

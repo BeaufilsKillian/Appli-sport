@@ -13,6 +13,11 @@
       "expo-sqlite",
       "expo-sharing",
       "expo-status-bar"
-    ]
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/favicon.png"
+    }
   }
 }

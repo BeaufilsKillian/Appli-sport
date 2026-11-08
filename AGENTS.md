@@ -1,5 +1,19 @@
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
+## Ponytail : mode lite
+
+Par défaut, appliquer la compétence installée `ponytail:ponytail` au niveau **lite** pour les tâches de ce projet, sauf instruction contraire de l’utilisateur. Charger son `SKILL.md` depuis le catalogue des compétences disponibles.
+
+Réaliser intégralement la demande, réutiliser les composants et dépendances existants et privilégier les changements ciblés. Si une solution plus simple existe, la signaler brièvement sans réduire la demande de sa propre initiative. Préserver les validations, la sécurité, l’accessibilité, les sauvegardes et la conservation des séances hors connexion. Conserver les vérifications exigées ci-dessous.
+
+## Préférence utilisateur : vérification sur iPhone
+
+Avant chaque demande de vérification sur iPhone, générer le QR actuel et l'ouvrir directement dans VS Code. Pour la PWA, utiliser l'adresse HTTPS de production Vercel ; un QR Expo ne teste pas la PWA. Pour les tests natifs seulement, démarrer ou vérifier le serveur Expo et réutiliser son adresse actuelle sans doublon.
+
+## Textes de l'application
+
+Privilégier des libellés courts. Éviter les paragraphes explicatifs répétés, le jargon technique et les sous-titres qui répètent le titre. Conserver les consignes d'exécution utiles, les notes personnelles, les unités, les erreurs et les confirmations de suppression.
+
 ## Expo has changed — do not trust your training data
 
 Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
@@ -39,3 +53,7 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Choix validé : PWA Vercel et Neon
+
+Adapter l’application existante, sans réécrire sa navigation. Vercel héberge le web et les API ; Neon Auth gère les comptes, PostgreSQL les sauvegardes privées. Conserver le fonctionnement local hors connexion. Ne jamais exposer DATABASE_URL ou les secrets de cookies au navigateur. Ne pas publier ni modifier les comptes distants sans demande appropriée. Le chronomètre de repos a été retiré à la demande de l’utilisateur. Procédure et limites dans DEPLOIEMENT_PWA.md.

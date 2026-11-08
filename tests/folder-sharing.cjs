@@ -1,0 +1,21 @@
+const assert=require('node:assert/strict'),crypto=require('node:crypto');
+const initSqlJs=require('sql.js');const {load,device}=require('./sync.cjs');
+const d=load('src/db.ts'),{parseBackup}=load('src/backup.ts');
+const {makeSharedFolder,parseSharedFolder,importSharedFolder}=load('src/folderSharing.ts');
+(async()=>{
+const engine=await initSqlJs(),sender=await device(engine),receiver=await device(engine);
+const folder=await d.createFolder(sender.db,'Programme partagé'),privateFolder=await d.createFolder(sender.db,'Dossier privé');
+const template=await d.createTemplate(sender.db,'Push',folder);await d.createTemplate(sender.db,'Privé',privateFolder);await d.addExercise(sender.db,template,'bench');
+const custom=await d.createCustomExercise(sender.db,'Mon exercice','Pectoraux','Haltères','Consigne technique');await d.addExercise(sender.db,template,custom);await d.changeExercisePlan(sender.db,template,'bench',4,8,120,false,10,2,true,'Consigne personnelle',12,8);
+await d.saveSettings(sender.db,{username:'Profil privé',weight:'75'});
+const source=parseBackup(await d.exportAllData(sender.db)),payload=makeSharedFolder(source,folder);
+assert.equal(payload.templates.length,1);assert.equal(payload.custom_exercises.length,1);assert.equal(payload.template_exercises[0].notes,'Consigne personnelle');assert(!JSON.stringify(payload).includes('Profil privé'));assert(!JSON.stringify(payload).includes('Dossier privé'));assert(!('sessions'in payload));assert(!('settings'in payload));
+const existing=await d.createFolder(receiver.db,'Dossier existant');const shareId=crypto.randomUUID();const imported=await importSharedFolder(receiver.db,payload,shareId);assert.notEqual(imported,folder);
+let data=parseBackup(await d.exportAllData(receiver.db));assert(data.folders.some(r=>r.id===existing));assert(data.folders.some(r=>r.id===imported));assert.equal(data.templates.length,1);assert.notEqual(data.templates[0].id,template);assert.notEqual(data.custom_exercises[0].id,custom);assert(data.template_exercises.some(r=>r.exercise_id===data.custom_exercises[0].id));assert.equal(data.template_exercises.find(r=>r.exercise_id==='bench').planned_reps_max,12);
+await importSharedFolder(receiver.db,payload,shareId);assert.equal((await d.fetchOverview(receiver.db)).folders.length,2,'réessai idempotent');
+await d.renameFolder(receiver.db,imported,'Copie modifiée');assert.equal((await d.fetchOverview(sender.db)).folders.find(r=>r.id===folder).name,'Programme partagé');await receiver.reopen();assert((await d.fetchOverview(receiver.db)).folders.some(r=>r.name==='Copie modifiée'));
+const invalid=structuredClone(payload);invalid.template_exercises[0].template_id='missing';assert.throws(()=>parseSharedFolder(invalid),/Programme/);
+const missing=structuredClone(payload);missing.custom_exercises=[];assert.throws(()=>parseSharedFolder(missing),/personnalisé manquant/);
+await assert.rejects(importSharedFolder({withExclusiveTransactionAsync:fn=>receiver.db.withExclusiveTransactionAsync(async tx=>{await fn(tx);throw Error('disque plein simulé')})},payload,crypto.randomUUID()),/plein/);assert.equal((await d.fetchOverview(receiver.db)).folders.length,2,'rollback complet');
+await sender.db.close();await receiver.db.close();console.log('OK partage local : dossier seul, sans profil/statistiques, consignes/plages/supersets préservés, identifiants remappés, copie indépendante, réessai idempotent, réouverture et rollback.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

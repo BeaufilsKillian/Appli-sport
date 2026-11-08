@@ -1,0 +1,19 @@
+{
+  "ciqual": {
+    "title": "Anses. 2025. Table de composition nutritionnelle Ciqual 2025.",
+    "url": "https://doi.org/10.5281/zenodo.17550133",
+    "foods": 3484,
+    "nutrients": [
+      "328",
+      "25003",
+      "31000",
+      "40000",
+      "34100"
+    ],
+    "note": "Valeurs pour 100 g ; traces et seuils non quantifiés conservés inconnus."
+  },
+  "off": {
+    "title": "Open Food Facts — ODbL",
+    "url": "https://world.openfoodfacts.org/terms-of-use"
+  }
+}

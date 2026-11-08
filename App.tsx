@@ -1,36 +1,44 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert, AppState, Appearance, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView,
-  StyleSheet, Text, TextInput, View,
+  Appearance, AppState, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView,
+  StyleSheet, Text, TextInput, View, useWindowDimensions,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { File, Paths } from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import { SQLiteProvider, useSQLiteContext } from 'expo-sqlite';
+import { Alert } from './src/alerts';
+import { shareFile } from './src/shareFile';
+import { PlatformShell, PlatformTools, FolderShareButton, ProfileRequestBadge, useCloudActivity } from './src/PlatformShell';
+import { SQLiteProvider, useSQLiteContext } from './src/database';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Svg, { Circle, Line, Polyline } from 'react-native-svg';
-import { C as DARK_C, LIGHT_C, durationLabel, fmt, shortDate } from './src/theme';
+import { C as DARK_C, LIGHT_C, durationLabel, minutesLabel, fmt, shortDate } from './src/theme';
+import { InlineSetValue } from './src/InlineSetValue';
+import { saveUpdateResume, takeUpdateResume } from './src/updateResume';
+import { previousPerformance, parseSetDuration, formatSetDuration } from './src/setInputs';
+import { rmReview } from './src/rmReview';
+import { NutritionScreen } from './src/nutrition/NutritionScreen';
+import { createSetWriter } from './src/setEditing';
 import { ExerciseMotion } from './src/ExerciseMotion';
 import { EXERCISES, MUSCLES, getExercise as getCatalogExercise, type Exercise } from './src/catalogue';
 import { techniqueFor, secondaryMusclesFor } from './src/technique';
-import { buildWorkoutBlocks, buildWorkoutRounds, type WorkoutBlock } from './src/supersets';
+import { buildWorkoutBlocks, buildWorkoutRounds } from './src/supersets';
+import { workoutProgress } from './src/workoutProgress';
 import { COACH_MUSCLES, GOALS, LEVELS, generateWorkout, goalLabel, normalizeGoal, proposeExercise, type Goal, type Experience } from './src/planner';
 import {
-  addExercise, changeExercisePlan, createFolder, createLoggedSet, createTemplate, createSuggestedTemplate, duplicateTemplate,
-  reorderExercise, saveExerciseMax, createCustomExercise, deleteEmptyFolder, deleteLoggedSet, deleteTemplate,
+  repTarget, repRangeLabel, exercisePlanLabel, addExercise, changeExercisePlan, createFolder, createLoggedSet, createTemplate, createSuggestedTemplate, duplicateTemplate,
+  reorderExercise, saveExerciseMax, suggestedLoad, createCustomExercise, deleteEmptyFolder, deleteLoggedSet, deleteTemplate,
   discardSession, exportAllData, fetchOverview, finishSession, getSettings, initDatabase, moveTemplate, resetStatistics,
-  removeExercise, renameFolder, renameTemplate, saveSettings, startSession, updateLoggedSet,
+  removeExercise, renameFolder, renameTemplate, saveSettings, startSelectedSession,
   type Folder, type HistorySet, type LoggedSet, type Session, type Template, type TemplateExercise, type ExerciseMax, type CustomExercise, type SessionExercise,
 } from './src/db';
 
-type Tab = 'home' | 'templates' | 'progress' | 'calendar' | 'profile';
-type Page = 'tabs' | 'folder' | 'template' | 'library' | 'detail' | 'workout' | 'timer' | 'history' | 'assistant';
+type Tab = 'home' | 'templates' | 'progress' | 'calendar' | 'nutrition' | 'profile';
+type Page = 'tabs' | 'folder' | 'template' | 'library' | 'detail' | 'workout' | 'history' | 'assistant';
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 type Palette = typeof DARK_C;
 type UiStyles = ReturnType<typeof createStyles>;
 const UIContext = React.createContext<{ C: Palette; styles: UiStyles }>({ C: DARK_C, styles: {} as UiStyles });
-const useUI = () => React.useContext(UIContext);
+export const useUI = () => React.useContext(UIContext);
 
 function UiIcon({ name, size, color }: { name: IconName; size: number; color?: string }) {
   const { C } = useUI();
@@ -40,12 +48,25 @@ const ico = (name: IconName, size = 21, color?: string) =>
   <UiIcon name={name} size={size} color={color} />;
 
 const countCompleted = (sets: LoggedSet[]) => sets.filter((s) => s.completed === 1).length;
-const volume = (sets: Array<{ completed: number; weight: number; reps: number }>) =>
-  sets.reduce((sum, s) => sum + (s.completed ? s.weight * s.reps : 0), 0);
+function SessionClock({ startedAt }: { startedAt: number }) {
+  const { styles } = useUI();
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const tick = () => setNow(Date.now());
+    tick();
+    const timer = setInterval(tick, 1000);
+    const subscription = AppState.addEventListener('change', state => { if (state === 'active') tick(); });
+    return () => { clearInterval(timer); subscription.remove(); };
+  }, [startedAt]);
+  return <Text style={styles.muted}>{durationLabel(Math.max(0, (now - startedAt) / 1000))}</Text>;
+}
+
+const volume = (sets: { completed: number; weight: number; reps: number; duration_seconds?: number | null }[]) =>
+  sets.reduce((sum, s) => sum + (s.completed && s.duration_seconds == null ? s.weight * s.reps : 0), 0);
 
 // Courbe native, sans serveur ni accès réseau. Les valeurs représentent la charge
 // maximale d'un exercice dans chaque séance.
-function ExerciseTrend({ points }: { points: Array<{ value: number; date: string }> }) {
+function ExerciseTrend({ points, timed = false }: { points: { value: number; date: string }[]; timed?: boolean }) {
   const { C, styles } = useUI();
   if (!points.length) return <Text style={styles.muted}>Pas encore de données.</Text>;
   const data = points.slice(-9);
@@ -63,13 +84,13 @@ function ExerciseTrend({ points }: { points: Array<{ value: number; date: string
     </Svg>
     <View style={{ width: '100%', flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 15 }}>
       <Text style={styles.muted}>{data[0].date}</Text>
-      <Text style={styles.muted}>Max. {fmt(hi, 1)} kg</Text>
+      <Text style={styles.muted}>Max. {timed ? `${formatSetDuration(hi)} min:ss` : `${fmt(hi, 1)} kg`}</Text>
       <Text style={styles.muted}>{data[data.length - 1].date}</Text>
     </View>
   </View>;
 }
 
-function Panel({ children, style }: { children: React.ReactNode; style?: any }) {
+export function Panel({ children, style }: { children: React.ReactNode; style?: any }) {
   const { styles } = useUI();
   return <View style={[styles.panel, style]}>{children}</View>;
 }
@@ -77,7 +98,7 @@ function H({ children, aside }: { children: React.ReactNode; aside?: React.React
   const { styles } = useUI();
   return <View style={styles.headingRow}><Text style={styles.heading}>{children}</Text>{aside}</View>;
 }
-function Button({ label, onPress, secondary = false, danger = false, icon, compact = false, disabled = false }: {
+export function Button({ label, onPress, secondary = false, danger = false, icon, compact = false, disabled = false }: {
   label: string; onPress: () => void; secondary?: boolean; danger?: boolean; icon?: IconName;
   compact?: boolean; disabled?: boolean;
 }) {
@@ -98,7 +119,7 @@ function IconButton({ name, onPress, color, background }: {
   const { C, styles } = useUI();
   return <Pressable onPress={onPress} style={[styles.iconButton, { backgroundColor: background ?? C.surfaceRaised }]}>{ico(name, 20, color ?? C.white)}</Pressable>;
 }
-function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+export function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   const { C, styles } = useUI();
   return (
     <Pressable onPress={onPress} style={[styles.chip, active && { backgroundColor: C.blue, borderColor: C.blue }]}>
@@ -144,34 +165,42 @@ function ScreenTitle({ title, subtitle, back, action }: { title: string; subtitl
 }
 function BottomNav({ tab, setTab }: { tab: Tab; setTab: (v: Tab) => void }) {
   const { C, styles } = useUI();
-  const tabs: Array<{ key: Tab; icon: IconName; chosen: IconName; label: string }> = [
+  const { width } = useWindowDimensions();
+  const tabs: { key: Tab; icon: IconName; chosen: IconName; label: string }[] = [
     { key: 'home', icon: 'home-outline', chosen: 'home', label: 'Accueil' },
     { key: 'templates', icon: 'calendar-outline', chosen: 'calendar', label: 'Séances' },
     { key: 'progress', icon: 'stats-chart-outline', chosen: 'stats-chart', label: 'Stats' },
     { key: 'calendar', icon: 'calendar-outline', chosen: 'calendar', label: 'Calendrier' },
+    { key: 'nutrition', icon: 'nutrition-outline', chosen: 'nutrition', label: 'Nutrition' },
     { key: 'profile', icon: 'person-outline', chosen: 'person', label: 'Profil' },
   ];
-  return <View style={styles.navBar}>{tabs.map((item) =>
-    <Pressable key={item.key} onPress={() => setTab(item.key)} style={styles.navItem}>
-      {ico(tab === item.key ? item.chosen : item.icon, 23, tab === item.key ? C.blue : C.muted)}
+  return <View accessibilityRole="tablist" style={[styles.navBar,{maxWidth:width}]}>{tabs.map((item) =>
+    <Pressable accessibilityRole="tab" accessibilityLabel={item.label} accessibilityState={{selected:tab===item.key}} key={item.key} onPress={() => setTab(item.key)} style={styles.navItem}>
+      <View style={styles.navIcon}>{ico(tab === item.key ? item.chosen : item.icon, 21, tab === item.key ? C.blue : C.muted)}{item.key==='profile'&&<ProfileRequestBadge/>}</View>
       <Text style={[styles.navLabel, tab === item.key && { color: C.blue }]}>{item.label}</Text>
     </Pressable>)}</View>;
 }
 
 export default function App() {
-  return <SafeAreaProvider>
+  return <PlatformShell><SafeAreaProvider style={{width:'100%',maxWidth:'100%'}}>
     <SQLiteProvider databaseName="muscu-bleu.db" onInit={initDatabase}>
       <Main />
     </SQLiteProvider>
-  </SafeAreaProvider>;
+  </SafeAreaProvider></PlatformShell>;
 }
 
 function Main() {
   const db = useSQLiteContext();
+  const { width: windowWidth } = useWindowDimensions();
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
   const C = useMemo(() => themeMode === 'light' ? LIGHT_C : DARK_C, [themeMode]);
   const styles = useMemo(() => createStyles(C), [C]);
-  useEffect(() => { Appearance.setColorScheme(themeMode); }, [themeMode]);
+  useEffect(() => { if (Platform.OS !== 'web') Appearance.setColorScheme(themeMode); }, [themeMode]);
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  useEffect(() => {
+    const tick = setInterval(() => setClockNow(Date.now()), 60_000);
+    return () => clearInterval(tick);
+  }, []);
   const [tab, setTab] = useState<Tab>('home');
   const [page, setPage] = useState<Page>('tabs');
   const [folders, setFolders] = useState<Folder[]>([]);
@@ -192,12 +221,18 @@ function Main() {
   const [selectedExercise, setSelectedExercise] = useState('bench');
   const [detailReturn, setDetailReturn] = useState<Page>('library');
   const [exerciseIndex, setExerciseIndex] = useState(0);
+  const [nutritionBusy, setNutritionBusy] = useState(false);
+  const [sharingOpen,setSharingOpen]=useState(false);
   const [libraryFilter, setLibraryFilter] = useState('Tous');
   const [libraryQuery, setLibraryQuery] = useState('');
   const [libraryLimit, setLibraryLimit] = useState(45);
   const [editingPlanExercise, setEditingPlanExercise] = useState<string | null>(null);
   const [planSets, setPlanSets] = useState('3');
   const [planReps, setPlanReps] = useState('8');
+  const [planRepsMax, setPlanRepsMax] = useState('');
+  const [planTimed, setPlanTimed] = useState(false);
+  const [planMinutes, setPlanMinutes] = useState('1');
+  const [planSeconds, setPlanSeconds] = useState('0');
   const [planRest, setPlanRest] = useState('120');
   const [planFailure, setPlanFailure] = useState(false);
   const [planFailureGuide, setPlanFailureGuide] = useState('10');
@@ -205,6 +240,8 @@ function Main() {
   const [planDropset, setPlanDropset] = useState(false);
   const [planNotes, setPlanNotes] = useState('');
   const [maxInput, setMaxInput] = useState('');
+  const [maxReserve, setMaxReserve] = useState('2');
+  const [maxReviewed, setMaxReviewed] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customMuscle, setCustomMuscle] = useState('Pectoraux');
   const [customEquipment, setCustomEquipment] = useState('Autre');
@@ -223,6 +260,7 @@ function Main() {
   const [modal, setModal] = useState<'none' | 'create' | 'folder' | 'renameFolder' | 'renameTemplate' | 'moveTemplate' | 'plan' | 'set' | 'profile' | 'max' | 'custom' | 'resetStats'>('none');
   const [newTemplateTitle, setNewTemplateTitle] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const editingTimed = activeSets.find(set => set.id === editingId)?.duration_seconds != null;
   const [weightInput, setWeightInput] = useState('');
   const [repsInput, setRepsInput] = useState('');
   const [rpeInput, setRpeInput] = useState('');
@@ -230,7 +268,9 @@ function Main() {
   const [profileDraft, setProfileDraft] = useState(settings);
   // Coach totalement facultatif : aucun calcul tant que l'ecran n'est pas ouvert.
   const [coachMuscles, setCoachMuscles] = useState<string[]>([]);
-  const [coachMinutes, setCoachMinutes] = useState('100');
+  const [coachHours, setCoachHours] = useState('1');
+  const [coachMinutes, setCoachMinutes] = useState('40');
+  const coachTotalMinutes = Number(coachHours) * 60 + Number(coachMinutes);
   const [coachTitle, setCoachTitle] = useState('Séance suggérée');
   const [coachGoal, setCoachGoal] = useState<Goal>('hypertrophy');
   const [coachLevel, setCoachLevel] = useState<Experience>('intermediate');
@@ -238,10 +278,14 @@ function Main() {
   const [coachReturn, setCoachReturn] = useState<Page>('tabs');
   const [coachPreview, setCoachPreview] = useState<ReturnType<typeof generateWorkout> | null>(null);
   const [coachError, setCoachError] = useState('');
-  const [restSeconds, setRestSeconds] = useState(90);
-  const [restBase, setRestBase] = useState(120);
-  const [restPaused, setRestPaused] = useState(false);
-  const [restEndsAt, setRestEndsAt] = useState<number | null>(null);
+  const startingWorkout = useRef(false);
+  const setWriter = useMemo(() => createSetWriter(db, next => setActiveSets(items => items.map(item => item.id === next.id ? next : item))), [db]);
+  const prepareUpdate = useCallback(async () => {
+    await setWriter.flush();
+    await saveUpdateResume(db, active?.id ?? null, exerciseIndex, page === 'workout');
+  }, [db, setWriter, active?.id, exerciseIndex, page]);
+  const updateCheckpoint = useMemo(() => ({ blocked: loading || nutritionBusy || sharingOpen || modal !== 'none' || page === 'assistant', prepare: prepareUpdate }), [loading, nutritionBusy, sharingOpen, modal, page, prepareUpdate]);
+  useCloudActivity(loading || nutritionBusy || !!active || sharingOpen || modal !== 'none' || page === 'assistant', updateCheckpoint);
 
   const refresh = useCallback(async () => {
     const overview = await fetchOverview(db);
@@ -254,13 +298,17 @@ function Main() {
     setActive(overview.active);
     setActiveSets(overview.activeSets);
     setActiveSessionExercises(overview.activeSessionExercises);
+    return overview;
   }, [db]);
 
   useEffect(() => {
     (async () => {
       try {
-        await refresh();
+        const overview = await refresh();
+        const resume = await takeUpdateResume(db, overview.active?.id);
+        if (resume) { setExerciseIndex(resume.exerciseIndex); if (resume.reopenWorkout) setPage('workout'); }
         const loadedSettings = await getSettings(db);
+        if (Platform.OS === 'web' && (new URLSearchParams(window.location.search).has('share')||new URLSearchParams(window.location.search).has('admin'))) { setPage('tabs'); setTab('profile'); }
         setSettings(loadedSettings);
         setThemeMode(loadedSettings.theme === 'light' ? 'light' : 'dark');
       } catch (err) {
@@ -269,24 +317,13 @@ function Main() {
     })();
   }, [db, refresh]);
 
-  // Un horodatage absolu permet de reprendre le décompte après mise en veille
-  // ou changement d'application, tant qu'Expo Go reste en cours d'exécution.
-  useEffect(() => {
-    if (page !== 'timer' || restPaused || restEndsAt === null) return;
-    const sync = () => setRestSeconds(Math.max(0, Math.ceil((restEndsAt - Date.now()) / 1000)));
-    sync();
-    const interval = setInterval(sync, 500);
-    const sub = AppState.addEventListener('change', (state) => { if (state === 'active') sync(); });
-    return () => { clearInterval(interval); sub.remove(); };
-  }, [page, restPaused, restEndsAt]);
-
   const allExercises: Exercise[] = useMemo(() => [...EXERCISES, ...customExercises.map(c=>({ ...c, pattern: 'cardio' as const, icon: 'fitness' as const }))], [customExercises]);
   const getExercise = (id: string): Exercise => allExercises.find(e => e.id === id) ?? getCatalogExercise(id);
   const maxFor = (id: string) => exerciseMaxes.find(m => m.exercise_id === id)?.weight ?? 0;
+  const reserveFor = (id: string) => exerciseMaxes.find(m => m.exercise_id === id)?.reserve_reps ?? 2;
+  const rmReviews = useMemo(() => new Map(exerciseMaxes.map(reference => [reference.exercise_id, rmReview(reference, historySets, clockNow)])), [exerciseMaxes, historySets, clockNow]);
   const loadSuggestion = (id: string, count: number, failure = false) => {
-    const max = maxFor(id);
-    if (max <= 0 || !Number.isFinite(max) || count < 1) return 0;
-    return Math.round((max / (1 + (count + (failure ? 0 : 2)) / 30)) / 2.5) * 2.5;
+    return suggestedLoad(maxFor(id), count, failure ? 0 : reserveFor(id));
   };
   const workoutBlocks = useMemo(() => buildWorkoutBlocks(activeSessionExercises), [activeSessionExercises]);
   const currentBlock = workoutBlocks[Math.min(exerciseIndex, Math.max(0, workoutBlocks.length - 1))];
@@ -295,28 +332,44 @@ function Main() {
     .sort((a, b) => a.position - b.position);
   const templateExercises = templatePlans.map((r) => getExercise(r.exercise_id));
   const activeComplete = countCompleted(activeSets);
-  const totalVolume = volume(historySets);
-  const sessionsLast7 = history.filter((s) => s.finished_at && s.finished_at > Date.now() - 7 * 86400000);
-  const lastSession = history[0];
-  const lastSets = historySets.filter((s) => s.session_id === lastSession?.id);
-  const lastVolume = volume(lastSets);
-  const activeSeconds = active ? Math.max(0, Math.floor((Date.now() - active.started_at) / 1000)) : 0;
+  const sessionsLast7 = history.filter((s) => s.finished_at && s.finished_at > clockNow - 7 * 86400000);
 
   async function safe(action: () => Promise<void>) {
     try { await action(); } catch (err) { Alert.alert('Une erreur est survenue', String(err)); }
   }
   async function beginWorkout(template: Template) {
-    if (active) { setPage('workout'); return; }
+    if (startingWorkout.current) return;
+    if (active?.template_id === template.id) { setPage('workout'); return; }
     const plans = relations.filter((r) => r.template_id === template.id).sort((a, b) => a.position - b.position);
     if (!plans.length) { Alert.alert('Séance vide', 'Ajoute au moins un exercice avant de commencer.'); return; }
-    await safe(async () => {
-      const result = await startSession(db, template, plans, exerciseMaxes);
-      setActive(result.session);
-      setActiveSets(result.sets);
-      setActiveSessionExercises(result.sessionExercises);
-      setExerciseIndex(0);
-      setPage('workout');
-    });
+    startingWorkout.current = true;
+    const cancel = () => { startingWorkout.current = false; };
+    const launch = async (allowDiscard = false) => {
+      try {
+        await safe(async () => {
+          const result = await startSelectedSession(db, template, plans, exerciseMaxes,
+            active ? { id: active.id, allowDiscard } : undefined);
+          setActive(result.session);
+          setActiveSets(result.sets);
+          setActiveSessionExercises(result.sessionExercises);
+          setExerciseIndex(0);
+          setPage('workout');
+          await refresh();
+        });
+      } finally { startingWorkout.current = false; }
+    };
+    if (!active) { await launch(); return; }
+    Alert.alert('Une autre séance est en cours', `« ${active.template_title} » est en cours. Tu as sélectionné « ${template.title} ».${activeComplete > 0 ? ' Les séries validées seront conservées dans l’historique si tu termines l’ancienne séance.' : ''}`, [
+      { text: 'Annuler', style: 'cancel', onPress: cancel },
+      { text: 'Reprendre l’ancienne', onPress: () => { cancel(); setPage('workout'); } },
+      { text: activeComplete > 0 ? 'Terminer et lancer' : 'Remplacer et lancer', onPress: () => {
+        if (activeComplete > 0) { void launch(); return; }
+        Alert.alert('Remplacer la séance ?', 'Aucune série n’est validée. Les charges, répétitions et autres saisies non validées de cette séance seront supprimées.', [
+          { text: 'Annuler', style: 'cancel', onPress: cancel },
+          { text: 'Remplacer et lancer', style: 'destructive', onPress: () => { void launch(true); } },
+        ], { cancelable: false });
+      } },
+    ], { cancelable: false });
   }
   function askFinishWorkout() {
     if (!active) return;
@@ -324,6 +377,7 @@ function Main() {
     Alert.alert('Terminer la séance ?', 'Les séries cochées seront conservées dans l’historique.', [
       { text: 'Continuer', style: 'cancel' },
       { text: 'Terminer', onPress: () => void safe(async () => {
+        await setWriter.flush();
         await finishSession(db, active.id);
         await refresh(); setPage('tabs'); setTab('home');
       }) },
@@ -334,72 +388,33 @@ function Main() {
     Alert.alert('Supprimer la séance en cours ?', 'Toutes les séries de cette séance seront perdues.', [
       { text: 'Annuler', style: 'cancel' },
       { text: 'Supprimer', style: 'destructive', onPress: () => void safe(async () => {
+        await setWriter.flush();
         await discardSession(db, active.id); await refresh(); setPage('tabs');
       }) },
     ]);
   }
-  function beginRest(secondsOverride?: number) {
-    const seconds = Math.min(600, Math.max(15, secondsOverride ?? (Number(settings.rest_duration) || 120)));
-    setRestBase(seconds); setRestSeconds(seconds); setRestPaused(false);
-    setRestEndsAt(Date.now() + seconds * 1000); setPage('timer');
-  }
-  function toggleRestPause() {
-    if (restPaused) { setRestEndsAt(Date.now() + restSeconds * 1000); setRestPaused(false); }
-    else { setRestSeconds(Math.max(0, Math.ceil(((restEndsAt ?? Date.now()) - Date.now()) / 1000)));
-      setRestEndsAt(null); setRestPaused(true); }
-  }
-  function shiftRest(delta: number) {
-    const remaining = restPaused ? restSeconds : Math.max(0, Math.ceil(((restEndsAt ?? Date.now()) - Date.now()) / 1000));
-    const next = Math.max(0, remaining + delta);
-    setRestSeconds(next);
-    if (!restPaused) setRestEndsAt(Date.now() + next * 1000);
-    setRestBase((base) => Math.max(15, base + delta));
-  }
   function toggleSet(s: LoggedSet) {
-    if (!s.completed && s.reps === 0) {
-      Alert.alert('Répétitions à saisir', 'Saisis les répétitions réellement effectuées avant de valider cette série.');
-      return;
-    }
-    void safe(async () => {
-      const next = { ...s, completed: s.completed ? 0 : 1 };
-      await updateLoggedSet(db, next);
-      setActiveSets(items => items.map(item => item.id === s.id ? next : item));
-      if (!next.completed || settings.auto_rest !== '1') return;
-      // Le repos automatique n'arrive qu'à la fin du tour COMPLET :
-      // A1 puis B1 -> repos ; A2 puis B2 -> repos, jamais entre A et B.
-      const block = workoutBlocks.find(b=>b.exerciseIds.includes(s.exercise_id));
-      if (!block) return;
-      const rounds = buildWorkoutRounds(block, activeSets);
-      const round = rounds.find(r=>r.rows.some(row=>row.set.id===s.id));
-      if (!round) return;
-      const complete = round.rows.every(row=>row.set.id===s.id || row.set.completed === 1);
-      if (!complete) return;
-      // Pas de repos automatique après la dernière série du bloc.
-      const hasNext = rounds.some(r=>r.number>round.number && r.rows.some(row=>row.set.completed!==1));
-      if (!hasNext) return;
-      const seconds = activeSessionExercises.find(p=>p.exercise_id===s.exercise_id)?.rest_seconds ?? 120;
-      if (seconds > 0) beginRest(seconds);
-    });
+    void safe(() => setWriter.write(s.id, 'toggle'));
   }
   function openSetEditor(s: LoggedSet) {
     setEditingId(s.id); setWeightInput(String(s.weight).replace('.', ','));
-    setRepsInput(String(s.reps)); setRpeInput(s.rpe === null ? '' : String(s.rpe).replace('.', ','));
+    setRepsInput(s.duration_seconds != null ? s.input?.duration ?? formatSetDuration(s.duration_seconds) : String(s.reps)); setRpeInput(s.rpe === null ? '' : String(s.rpe).replace('.', ','));
     setModal('set');
   }
   function parseNumber(value: string) { return Number(value.replace(',', '.')); }
   function saveSetChanges() {
     const s = activeSets.find((row) => row.id === editingId);
     if (!s) return;
-    const weight = parseNumber(weightInput); const reps = Number(repsInput);
+    const timed = s.duration_seconds != null;
+    const weight = parseNumber(weightInput); const reps = timed ? 0 : Number(repsInput);
+    const duration = timed ? parseSetDuration(repsInput) : null;
     const rpe = rpeInput.trim() ? parseNumber(rpeInput) : null;
-    if (!Number.isFinite(weight) || weight < 0 || !Number.isInteger(reps) || reps < 0 || reps > 1000 ||
+    if (!Number.isFinite(weight) || weight < 0 || (timed && duration === null) || !Number.isInteger(reps) || reps < 0 || reps > 1000 ||
       (rpe !== null && (!Number.isFinite(rpe) || rpe < 0 || rpe > 10))) {
-      Alert.alert('Valeurs incorrectes', 'Vérifie le poids, les répétitions et le RPE (entre 0 et 10).'); return;
+      Alert.alert('Valeurs incorrectes', 'Vérifie la charge, les répétitions ou la durée (secondes ou min:ss), et le RPE (0 à 10).'); return;
     }
     void safe(async () => {
-      const next = { ...s, weight, reps, rpe };
-      await updateLoggedSet(db, next);
-      setActiveSets((items) => items.map((item) => item.id === s.id ? next : item));
+      await setWriter.write(s.id, { weight, reps, rpe, ...(timed ? { duration_seconds:duration } : {}) });
       setModal('none');
     });
   }
@@ -419,6 +434,7 @@ function Main() {
     const count = activeSets.filter(s=>s.exercise_id===editing.exercise_id).length;
     if (count<=1) { Alert.alert('Impossible', 'Conserve au moins une série par exercice.'); return; }
     void safe(async () => {
+      await setWriter.flush();
       await deleteLoggedSet(db, editingId);
       setActiveSets(prev => prev.filter(s=>s.id!==editingId));
       setModal('none');
@@ -487,8 +503,10 @@ function Main() {
   }
   function saveMax() {
     const value = parseNumber(maxInput);
+    const reserve = Number(maxReserve);
+    if (!maxReserve.trim() || !Number.isInteger(reserve) || reserve < 0 || reserve > 10) { Alert.alert('Réserve invalide', 'Indique 0 à 10 répétitions en réserve.'); return; }
     if (!Number.isFinite(value) || value < 0 || value > 1000) { Alert.alert('1RM invalide','Entre une charge entre 0 et 1 000 kg.'); return; }
-    void safe(async () => { await saveExerciseMax(db, selectedExercise, value); await refresh(); setModal('none'); });
+    void safe(async () => { await saveExerciseMax(db, selectedExercise, value, reserve, maxReviewed); await refresh(); setModal('none'); });
   }
   function saveCustomExercise() {
     const name = customName.trim(); if (!name || !customMuscle) { Alert.alert('Champs manquants', 'Indique un nom et un muscle.'); return; }
@@ -499,16 +517,22 @@ function Main() {
   }
   function savePlan() {
     if (!editingPlanExercise) return;
-    const sets = Number(planSets), reps = Number(planReps), rest = Number(planRest);
+    const sets = Number(planSets), min = planReps.trim() === '' ? null : Number(planReps), max = planRepsMax.trim() === '' ? null : Number(planRepsMax), rest = Number(planRest);
+    const minutes = Number(planMinutes), seconds = Number(planSeconds), duration = planTimed ? minutes * 60 + seconds : null;
+    if (planTimed && (!Number.isInteger(minutes) || minutes < 0 || !Number.isInteger(seconds) || seconds < 0 || seconds > 59 || duration! < 1 || duration! > 86400)) { Alert.alert('Durée incorrecte', 'Indique 1 seconde à 24 heures ; secondes : 0 à 59.'); return; }
+    if (!planTimed && !planFailure && ([min, max].some(v => v !== null && (!Number.isInteger(v) || v < 1 || v > 200)) || (min !== null && max !== null && min > max))) {
+      Alert.alert('Répétitions incorrectes', 'Indique 1 à 200 ou laisse le champ vide. Le minimum ne doit pas dépasser le maximum.'); return;
+    }
     const guide = Number(planFailureGuide), group = Number(planSuperset);
-    if (!Number.isInteger(sets) || sets < 1 || sets > 20 || !Number.isInteger(reps) || reps < 1 || reps > 200 || !Number.isInteger(rest) || rest < 0 || rest > 600 || !Number.isInteger(guide) || guide < 1 || guide > 30 || !Number.isInteger(group) || group < 0 || group > 99) {
+    if (!Number.isInteger(sets) || sets < 1 || sets > 20 || !Number.isInteger(rest) || rest < 0 || rest > 600 || !Number.isInteger(guide) || guide < 1 || guide > 30 || !Number.isInteger(group) || group < 0 || group > 99) {
       Alert.alert('Valeurs incorrectes', 'Séries : 1-20, répétitions : 1-200, repos : 0-600 secondes.'); return;
     }
-    void safe(async () => { await changeExercisePlan(db, selectedTemplate, editingPlanExercise, sets, reps, rest, planFailure, guide, group, planDropset, planNotes.trim().slice(0, 2000)); await refresh(); setModal('none'); });
+    void safe(async () => { await changeExercisePlan(db, selectedTemplate, editingPlanExercise, sets, min ?? max ?? 0, rest, planFailure, guide, group, planDropset, planNotes.trim().slice(0, 2000), planFailure || planTimed ? null : max, planFailure || planTimed ? null : min, duration); await refresh(); setModal('none'); });
   }
   function editPlan(plan: TemplateExercise) {
     setEditingPlanExercise(plan.exercise_id); setPlanSets(String(plan.planned_sets));
-    setPlanReps(String(plan.planned_reps)); setPlanRest(String(plan.rest_seconds));
+    setPlanTimed(plan.planned_duration_seconds != null); setPlanMinutes(String(Math.floor((plan.planned_duration_seconds ?? 60) / 60))); setPlanSeconds(String((plan.planned_duration_seconds ?? 60) % 60));
+    setPlanReps(plan.planned_reps_min == null ? '' : String(plan.planned_reps_min)); setPlanRepsMax(plan.planned_reps_max == null ? '' : String(plan.planned_reps_max)); setPlanRest(String(plan.rest_seconds));
     setPlanFailure(!!plan.to_failure); setPlanFailureGuide(String(plan.failure_rep_guide ?? 10));
     setPlanSuperset(String(plan.superset_group ?? 0)); setPlanDropset(!!plan.dropset); setPlanNotes(plan.notes ?? ''); setModal('plan');
   }
@@ -533,14 +557,15 @@ function Main() {
     setCoachFolder(folderId || folders[0]?.id || '');
     setCoachGoal(normalizeGoal(settings.goal));
     setCoachLevel(LEVELS.some(l=>l.id===settings.experience) ? settings.experience as Experience : 'intermediate');
-    setCoachMuscles([]); setCoachMinutes('100'); setCoachPreview(null); setCoachError('');
+    setCoachMuscles([]); setCoachHours('1'); setCoachMinutes('40'); setCoachPreview(null); setCoachError('');
     setCoachTitle('Séance suggérée'); setPage('assistant');
   }
   function proposeCoachWorkout() {
     try {
       const ageValue = Number(settings.age);
       const age = Number.isFinite(ageValue) && ageValue>0 ? ageValue : undefined;
-      const plan=generateWorkout(allExercises,coachMuscles,Number(coachMinutes),coachGoal,coachLevel,age);
+      if (Number(coachMinutes) > 59) throw new Error('Le champ minutes doit être compris entre 0 et 59.');
+      const plan=generateWorkout(allExercises,coachMuscles,coachTotalMinutes,coachGoal,coachLevel,age);
       if (!plan.items.length) { setCoachError('Aucun exercice ne tient dans cette durée. Choisis plus de temps ou moins de muscles.');setCoachPreview(null);return; }
       setCoachPreview(plan);setCoachError('');
     } catch (err) {setCoachPreview(null);setCoachError(String(err instanceof Error?err.message:err));}
@@ -585,8 +610,7 @@ function Main() {
   }
   const goBackFromDetail = () => setPage(detailReturn);
 
-  const total7Volume = volume(historySets.filter((s) => s.finished_at > Date.now() - 7 * 86400000));
-  const templateColors: Record<string, string> = { Push: '#AE4348', Pull: '#177856', Legs: '#9B671A', Upper: '#8550C3', Lower: '#086BC7', Perso: C.blue };
+  const total7Volume = volume(historySets.filter((s) => s.finished_at > clockNow - 7 * 86400000));
 
   function FolderCard({ folder }: { folder: Folder }) {
     const list = templates.filter(t => t.folder_id === folder.id);
@@ -606,7 +630,7 @@ function Main() {
   function homeScreen() {
     return <>
       <Text style={styles.title}>Training Programme</Text>
-      <Text style={[styles.muted, { marginBottom: 22 }]}>Mes programmes d'entraînement</Text>
+      <View style={{height:18}} />
       {active && <Panel style={{ marginBottom: 15 }}>
         <Text style={styles.miniLabel}>SÉANCE EN COURS</Text>
         <Text style={[styles.cardTitle, { marginTop: 7, marginBottom: 5 }]}>{active.template_title}</Text>
@@ -615,21 +639,21 @@ function Main() {
       </Panel>}
       <H>Dossiers <IconButton name="add" background={C.blue} onPress={() => { setNewFolderTitle(''); setModal('folder'); }} /></H>
       {folders.length ? folders.map(f => <FolderCard key={f.id} folder={f} />) :
-        <Empty title="Aucun dossier" subtitle="Crée ton premier dossier pour y ranger les séances que tu construiras." icon="folder-open-outline" />}
+        <Empty title="Aucun dossier" subtitle="Touche + pour en créer un." icon="folder-open-outline" />}
       <View style={{ height: 12 }} />
       <Button label="Créer un dossier" icon="folder-open-outline" onPress={() => { setNewFolderTitle(''); setModal('folder'); }} />
       <View style={{ height: 23 }} /><H>Ton activité <Text style={styles.muted}>(7 jours)</Text></H>
       <View style={styles.grid3}>
         <Panel style={styles.smallStat}><Text style={styles.statValue}>{sessionsLast7.length}</Text><Text style={styles.smallStatText}>Séances</Text></Panel>
         <Panel style={styles.smallStat}><Text style={styles.statValue}>{fmt(total7Volume)} kg</Text><Text style={styles.smallStatText}>Volume</Text></Panel>
-        <Panel style={styles.smallStat}><Text style={styles.statValue}>{historySets.filter(s => s.finished_at > Date.now()-7*86400000).length}</Text><Text style={styles.smallStatText}>Séries</Text></Panel>
+        <Panel style={styles.smallStat}><Text style={styles.statValue}>{historySets.filter(s => s.finished_at > clockNow-7*86400000).length}</Text><Text style={styles.smallStatText}>Séries</Text></Panel>
       </View>
     </>;
   }
 
   function templatesScreen() {
     return <>
-      <ScreenTitle title="Mes séances" subtitle="Organisées dans tes dossiers"
+      <ScreenTitle title="Mes séances"
         action={<IconButton name="add" background={C.blue} onPress={() => { setNewFolderTitle(''); setModal('folder'); }} />} />
       {folders.length ? folders.map(f => <FolderCard key={f.id} folder={f} />) :
         <Empty icon="folder-open-outline" title="Aucune séance" subtitle="Commence par créer ton premier dossier." />}
@@ -656,12 +680,13 @@ function Main() {
           {plans.map(plan => <View key={plan.exercise_id} style={[styles.inlineRow,{marginTop:11}]}>
             {customExercises.some(c=>c.id===plan.exercise_id) ? <ExerciseGlyph exercise={getExercise(plan.exercise_id)} size={64}/> : <ExerciseMotion theme={themeMode} exercise={getExercise(plan.exercise_id)} width={64} />}
             <View style={{flex:1}}><Text style={styles.cardTitle}>{getExercise(plan.exercise_id).name}</Text>
-              <Text style={styles.muted}>{plan.planned_sets} × {plan.to_failure ? 'Échec technique' : `${plan.planned_reps} répétitions`} • repos {plan.rest_seconds ? `${plan.rest_seconds} s` : 'libre'} {plan.superset_group ? ` • Superset ${plan.superset_group}` : ''}</Text></View>
+              <Text style={styles.muted}>{exercisePlanLabel(plan)} • repos {plan.rest_seconds ? `${plan.rest_seconds} s` : 'libre'} {plan.superset_group ? ` • Superset ${plan.superset_group}` : ''}</Text></View>
           </View>)}
           <View style={{height:12}} /><Button label="Voir / modifier la séance" secondary icon="create-outline" onPress={() => openTemplate(t)} />
         </Pressable>;
       })}
-      {!list.length && <Empty title="Ce dossier est vide" subtitle="Ajoute ta première séance, puis ses exercices et objectifs." icon="barbell-outline" />}
+      {!list.length && <Empty title="Dossier vide" subtitle="Touche + pour ajouter une séance." icon="barbell-outline" />}
+      <FolderShareButton db={db} folderId={folder.id} onOpenChange={setSharingOpen}/>
       <View style={{height:10}}/><Button label="Créer une séance" icon="add" onPress={() => { setNewTemplateTitle(''); setModal('create'); }} />
       <View style={{height:9}}/><Button label="Séance suggérée (facultatif)" secondary icon="sparkles-outline" onPress={()=>openCoach(folder.id)} />
       {!list.length && <><View style={{height:10}}/><Button label="Supprimer ce dossier vide" icon="trash-outline" secondary onPress={askDeleteFolder} /></>}
@@ -671,7 +696,7 @@ function Main() {
   function templateScreen() {
     if (!selectedTemplateData) return null;
     return <>
-      <ScreenTitle title={selectedTemplateData.title} subtitle="Exercices et objectifs de la séance"
+      <ScreenTitle title={selectedTemplateData.title}
         back={() => setPage('folder')}
         action={<IconButton name="create-outline" onPress={() => { setEditTitle(selectedTemplateData.title); setModal('renameTemplate'); }} />} />
       <H>Exercices ({templateExercises.length})</H>
@@ -683,7 +708,7 @@ function Main() {
             <View style={{ flex: 1 }}>
               <Text style={styles.cardTitle}>{i+1}. {e.name}</Text>
               <Text style={styles.muted}>{e.muscle} • {e.equipment}</Text>
-              <Text style={[styles.blueLink,{marginTop:6}]}>{plan.planned_sets} séries × {plan.to_failure ? 'Échec' : `${plan.planned_reps} rép.`}</Text>
+              <Text style={[styles.blueLink,{marginTop:6}]}>{exercisePlanLabel(plan)}</Text>
               <Text style={styles.muted}>Repos : {plan.rest_seconds === 0 ? 'libre' : `${plan.rest_seconds} s`} {plan.superset_group ? ` • Superset ${plan.superset_group}` : ''}{plan.dropset ? ' • Dropset final' : ''}</Text>
               {plan.notes?.trim() ? <Text style={[styles.muted,{marginTop:5}]} numberOfLines={3}>📝 {plan.notes}</Text> : null}
             </View>
@@ -700,6 +725,7 @@ function Main() {
         </Panel>;
       })}
       <View style={{height:8}}/><Button label="Ajouter un exercice" icon="add" secondary onPress={() => openLibrary(selectedTemplate)} />
+      {/* eslint-disable-next-line react-hooks/refs -- beginWorkout lit le verrou uniquement au clic. */}
       <View style={{height:12}}/><Button label="Commencer cette séance" icon="play" onPress={() => void beginWorkout(selectedTemplateData)} />
       <View style={{height:12}}/><Button label="Dupliquer cette séance" icon="copy-outline" secondary onPress={copyCurrentTemplate} />
       <View style={{height:12}}/><Button label="Déplacer vers un dossier" icon="folder-outline" secondary onPress={() => { setMoveTarget(selectedTemplateData.folder_id||''); setModal('moveTemplate'); }} />
@@ -712,7 +738,7 @@ function Main() {
       (libraryFilter === 'Tous' || e.muscle === libraryFilter) &&
       (e.name + ' ' + e.muscle + ' ' + e.equipment).toLowerCase().includes(libraryQuery.toLowerCase()));
     return <>
-      <ScreenTitle title="Exercices" subtitle={`${allExercises.length} exercices • recherche par muscle et matériel`}
+      <ScreenTitle title="Exercices" subtitle={`${allExercises.length} exercices`}
         back={() => setPage(libraryForTemplate ? 'template' : 'tabs')} />
       <View style={{marginBottom:10}}><Button label="Créer mon exercice personnalisé" secondary icon="add-circle-outline" onPress={() => { setCustomName('');setCustomDescription('');setCustomEquipment('Autre');setModal('custom'); }} /></View>
       <View style={styles.searchBox}>{ico('search-outline', 18, C.muted)}
@@ -737,28 +763,29 @@ function Main() {
     const ex = getExercise(selectedExercise);
     const hist = historySets.filter((s) => s.exercise_id === ex.id);
     const maxWeight = hist.length ? Math.max(...hist.map((s) => s.weight)) : 0;
-    const bestVolume = hist.length ? Math.max(...hist.map((s) => s.weight * s.reps)) : 0;
+    const bestVolume = hist.length ? Math.max(...hist.map((s) => s.duration_seconds == null ? s.weight * s.reps : 0)) : 0;
+    const bestDuration = Math.max(0, ...hist.map(set => set.duration_seconds ?? 0));
     const cue = techniqueFor(ex);
     const isCustom = customExercises.some(c=>c.id===ex.id);
     return <>
       <ScreenTitle title="Détails exercice" back={goBackFromDetail} />
-      <View style={{ alignItems: 'center', marginVertical: 20 }}>{isCustom ? <ExerciseGlyph exercise={ex} size={110}/> : <ExerciseMotion theme={themeMode} exercise={ex} width={204} showLabel />}</View>
-      <Text style={[styles.muted, {textAlign:'center',marginBottom:12}]}>{isCustom ? 'Exercice personnel : aucune animation validée.' : 'Animation schématique de famille : elle ne montre pas forcément les angles exacts de cet exercice.'}</Text>
+      <View style={{ alignItems: 'center', marginVertical: 20 }}>{isCustom ? <ExerciseGlyph exercise={ex} size={110}/> : <ExerciseMotion theme={themeMode} exercise={ex} width={Math.min(320, Math.max(180, windowWidth - 48))} showLabel />}</View>
       <Text style={styles.title}>{ex.name}</Text><Text style={[styles.muted, { marginTop: 5 }]}>{ex.muscle} • {ex.equipment}</Text>
       <View style={{ height: 17 }} /><H>Muscles sollicités</H>
-      <Panel><Text style={styles.blueLink}>Principal : {ex.muscle}</Text><Text style={[styles.muted,{marginTop:7}]}>Secondaires (indicatifs) : {secondaryMusclesFor(ex)}</Text></Panel>
+      <Panel><Text style={styles.blueLink}>Principal : {ex.muscle}</Text><Text style={[styles.muted,{marginTop:7}]}>Secondaires : {secondaryMusclesFor(ex)}</Text></Panel>
       <View style={{ height: 20 }} /><H>Informations</H>
       <Panel><Text style={styles.bodyText}>{ex.description}</Text></Panel>
       <View style={{height:14}}/><H>Repères techniques</H>
       <Panel>
         {([['Position et prise',cue.setup],['Trajectoire et amplitude',cue.amplitude],['Exécution contrôlée',cue.execution],['À surveiller',cue.caution]] as const).map(([label,value]) =>
           <View key={label} style={{marginBottom:13}}><Text style={[styles.blueLink,{marginBottom:4}]}>{label}</Text><Text style={styles.bodyText}>{value}</Text></View>)}
-        <Text style={styles.muted}>L'animation illustre une famille de mouvements, pas nécessairement les angles exacts de cette variante. Fais vérifier ta technique en personne si nécessaire.</Text>
       </Panel>
       <View style={{height:13}}/><H>Ma charge de référence</H>
       <Panel><View style={styles.inlineRow}><View style={{flex:1}}><Text style={styles.cardTitle}>1RM : {maxFor(ex.id) ? `${fmt(maxFor(ex.id),1)} kg` : 'non défini'}</Text>
-       <Text style={styles.muted}>Estimation Epley, ≈ 2 répétitions en réserve</Text></View>
-       <Button compact label="Modifier" secondary onPress={()=>{setMaxInput(String(maxFor(ex.id)||''));setModal('max');}} /></View>
+       <Text style={styles.muted}>Charge indicative · {reserveFor(ex.id)} répétition(s) en réserve</Text></View>
+       <Button compact label="Modifier" secondary onPress={()=>{setMaxInput(String(maxFor(ex.id)||''));setMaxReserve(String(reserveFor(ex.id)));setMaxReviewed(false);setModal('max');}} /></View>
+       {maxFor(ex.id)>0 && <Text style={[styles.muted,{marginTop:8}]}>Référence du {shortDate(exerciseMaxes.find(reference => reference.exercise_id === ex.id)!.updated_at)}</Text>}
+       {rmReviews.get(ex.id) && <Text style={[styles.muted,{marginTop:8,color:C.gold}]}>1RM à réévaluer · {rmReviews.get(ex.id)}</Text>}
        {maxFor(ex.id)>0 && <Text style={[styles.blueLink,{marginTop:10}]}>Ex. 8 répétitions : ≈ {fmt(loadSuggestion(ex.id,8),1)} kg</Text>}
       </Panel>
       <View style={{ height: 20 }} /><H>Mes records</H>
@@ -766,6 +793,7 @@ function Main() {
         <Panel style={{ flex: 1 }}><Text style={styles.muted}>Charge max</Text><Text style={styles.bigStat}>{fmt(maxWeight, 1)} kg</Text></Panel>
         <Panel style={{ flex: 1 }}><Text style={styles.muted}>Meilleure série</Text><Text style={styles.bigStat}>{fmt(bestVolume)} kg</Text></Panel>
       </View>
+      {bestDuration > 0 && <Panel style={{marginTop:12}}><Text style={styles.muted}>Meilleure durée</Text><Text style={styles.bigStat}>{formatSetDuration(bestDuration)} min:ss</Text></Panel>}
       <View style={{ height: 16 }} />
       {libraryForTemplate && <Button label="Ajouter au programme" icon="add" onPress={() => addToTemplate(ex.id)} />}
     </>;
@@ -777,6 +805,12 @@ function Main() {
     const inBlock = activeSets.filter(s=>currentBlock.exerciseIds.includes(s.exercise_id));
     const rounds = buildWorkoutRounds(currentBlock, inBlock);
     const completedSets = countCompleted(activeSets);
+    const hasTimedSets = inBlock.some(set => set.duration_seconds != null);
+    const allTimedSets = inBlock.length > 0 && inBlock.every(set => set.duration_seconds != null);
+    const progress = workoutProgress(activeSessionExercises.map(plan => {
+      const target = relations.find(row => row.template_id === active.template_id && row.exercise_id === plan.exercise_id);
+      return { ...plan, target_reps: target?.to_failure ? target.failure_rep_guide : repTarget(target, true) };
+    }), activeSets);
     const isSuperset = currentBlock.group > 0 && currentBlock.exerciseIds.length > 1;
     const headerName = isSuperset ? `Superset ${currentBlock.group}` : getExercise(currentBlock.exerciseIds[0]).name;
     const canGoNext = exerciseIndex < workoutBlocks.length - 1;
@@ -788,12 +822,12 @@ function Main() {
           <Text style={styles.muted}>{completedSets}/{activeSets.length} séries validées</Text></View>
         <IconButton name="trash-outline" color={C.red} background="transparent" onPress={askDiscardWorkout} />
       </View>
-      <View style={styles.progressTrack}><View style={[styles.progressFill,
-        {width:`${activeSets.length ? 100*completedSets/activeSets.length : 0}%`}]} /></View>
-      <Text style={[styles.muted,{marginBottom:14}]}>Bloc {exerciseIndex+1}/{workoutBlocks.length} • {durationLabel(activeSeconds)}</Text>
+      <View accessibilityRole="progressbar" accessibilityLabel="Avancement estimé de la séance" accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }} style={styles.progressTrack}><View style={[styles.progressFill,
+        {width:`${100*progress}%`}]} /></View>
+      <Text style={[styles.muted,{marginBottom:14}]}>Bloc {exerciseIndex+1}/{workoutBlocks.length} • <SessionClock startedAt={active.started_at} /> · {Math.round(progress * 100)} % estimés</Text>
       <View style={[styles.inlineRow,{marginBottom:10,justifyContent:'space-between'}]}>
         <View style={{flex:1}}><Text style={styles.title}>{headerName}</Text>
-          <Text style={styles.muted}>{isSuperset ? `${currentBlock.exerciseIds.length} exercices alternés • sans repos entre eux` : 'Séries de travail'}</Text>
+          {isSuperset ? <Text style={styles.muted}>{currentBlock.exerciseIds.length} exercices · sans repos entre eux</Text> : null}
         </View>
         {isSuperset && <Text style={styles.supersetBadge}>SUPERSET</Text>}
       </View>
@@ -808,17 +842,23 @@ function Main() {
           <View style={{flex:1,gap:3}}>
             <Text style={styles.cardTitle}>{ex.name}</Text>
             <Text style={styles.muted}>{ex.muscle} • Repos : {plan?.rest_seconds===0?'libre':`${plan?.rest_seconds??120} s`}</Text>
+            <Pressable accessibilityRole="button" onPress={() => { setSelectedExercise(id); setDetailReturn('workout'); setPage('detail'); }} style={{paddingVertical:6}}>
+              <Text style={styles.blueLink}>Voir le mouvement ↗</Text>
+            </Pressable>
             {plan?.notes?.trim() ? <View style={styles.noteBox}><Text style={styles.noteTitle}>MES CONSIGNES</Text><Text style={styles.noteText}>{plan.notes}</Text></View> : null}
-            {last && <Text style={styles.muted}>Dernière : {fmt(last.weight,1)} kg × {last.reps}</Text>}
+            {plan?.planned_duration_seconds != null ? <Text style={styles.blueLink}>Objectif : {formatSetDuration(plan.planned_duration_seconds)} min:ss</Text> : <>
             {originalPlan?.to_failure ? <Text style={styles.blueLink}>Objectif : échec technique</Text> : null}
-            {maxFor(id)>0 ? <Text style={styles.blueLink}>Charge 1RM suggérée : {fmt(loadSuggestion(id, originalPlan?.to_failure?originalPlan.failure_rep_guide:(originalPlan?.planned_reps??8),!!originalPlan?.to_failure),1)} kg</Text> : null}
-            {last && !originalPlan?.to_failure && last.rpe!==null && last.rpe<=8 && last.reps>=(originalPlan?.planned_reps??8) ?
+            {originalPlan && !originalPlan.to_failure && repRangeLabel(originalPlan) ? <Text style={styles.blueLink}>Objectif : {repRangeLabel(originalPlan)} rép.</Text> : null}
+            {maxFor(id)>0 && (!!originalPlan?.to_failure || repTarget(originalPlan, true)>0) ? <Text style={styles.blueLink}>Charge suggérée : {fmt(loadSuggestion(id, originalPlan?.to_failure?originalPlan.failure_rep_guide:repTarget(originalPlan, true),!!originalPlan?.to_failure),1)} kg</Text> : null}
+            {rmReviews.get(id) && <Text style={[styles.muted,{color:C.gold}]}>1RM à réévaluer · {rmReviews.get(id)}</Text>}
+            {last && last.duration_seconds == null && !originalPlan?.to_failure && repTarget(originalPlan, true)>0 && last.rpe!==null && last.rpe<=8 && last.reps>=(originalPlan?.planned_reps??8) ?
               <Text style={styles.green}>Progression possible : +2,5 kg si exécution maîtrisée</Text> : null}
+            </>}
           </View>
           <IconButton name="information-circle-outline" onPress={()=>{setLibraryForTemplate(null);openExercise(ex);}} />
         </View>;
       })}
-      {isSuperset && <Text style={[styles.muted,{marginVertical:11}]}>Enchaîne A → B{currentBlock.exerciseIds.length>2?' → …':''}, puis passe au tour suivant. Appuie sur une charge ou un nombre de répétitions pour les modifier.</Text>}
+      {hasTimedSets && <Text style={styles.muted}>Durée : min:ss ou secondes · charge facultative.</Text>}
       <Panel style={{padding:0,overflow:'hidden',marginTop:10,marginBottom:12}}>
         {rounds.map((round,roundIndex)=><View key={`round-${round.number}`}>
           <View style={[styles.roundHeader,roundIndex>0&&{borderTopWidth:1,borderTopColor:C.line}]}>
@@ -827,27 +867,26 @@ function Main() {
           </View>
           <View style={[styles.tableRow,styles.tableHeader]}>
             <Text style={[styles.tableCell,{flex:0.8}]}>{isSuperset?'Exo':'Série'}</Text>
-            <Text style={styles.tableCell}>Charge</Text><Text style={styles.tableCell}>Rép.</Text>
+            <Text style={styles.tableCell}>Charge</Text><Text style={styles.tableCell}>{allTimedSets ? 'Durée' : hasTimedSets ? 'Durée / Rép.' : 'Rép.'}</Text>
             <Text style={[styles.tableCell,{flex:0.6}]}>✓</Text>
           </View>
-          {round.rows.map(({exerciseIndex:exIndex,set:serie})=><View key={serie.id} style={[styles.tableRow,serie.completed===1&&{backgroundColor:themeMode==='light'?'#E6F8EF':'#0E221D'}]}>
+          {round.rows.map(({exerciseIndex:exIndex,set:serie})=>{
+            const previous = previousPerformance(historySets, serie);
+            return <View key={serie.id} style={[styles.tableRow,serie.completed===1&&{backgroundColor:themeMode==='light'?'#E6F8EF':'#0E221D'}]}>
             <Pressable style={{flex:0.8,alignItems:'center'}} onPress={()=>openSetEditor(serie)}>
               <Text style={[styles.tableText,isSuperset&&{color:C.blue}]}>{serie.set_kind==='drop'?`${String.fromCharCode(65+exIndex)} D`:isSuperset?String.fromCharCode(65+exIndex):serie.ordinal}</Text>
             </Pressable>
-            <Pressable style={styles.cellButton} onPress={()=>openSetEditor(serie)}>
-              <Text style={styles.tableText}>{fmt(serie.weight,2)} kg</Text>
-            </Pressable>
-            <Pressable style={styles.cellButton} onPress={()=>openSetEditor(serie)}>
-              <Text style={styles.tableText}>{serie.reps===0?'—':serie.reps}</Text>
-            </Pressable>
+            <InlineSetValue value={serie.input?.weight ?? String(serie.weight).replace('.', ',')} previous={previous?.weight} field="weight" label={`Charge série ${serie.ordinal} de ${getExercise(serie.exercise_id).name}`} color={C.white} borderColor={C.line}
+              onText={text => { void safe(() => setWriter.write(serie.id, { field: 'weight', text })); }} />
+            <InlineSetValue value={serie.duration_seconds != null ? serie.input?.duration ?? formatSetDuration(serie.duration_seconds) : serie.input?.reps ?? String(serie.reps)} previous={serie.duration_seconds != null ? previous?.duration_seconds ?? undefined : previous?.reps} field={serie.duration_seconds != null ? 'duration' : 'reps'} label={`${serie.duration_seconds != null ? 'Durée (min:ss ou secondes)' : 'Répétitions'} série ${serie.ordinal} de ${getExercise(serie.exercise_id).name}`} color={C.white} borderColor={C.line}
+              onText={text => { void safe(() => setWriter.write(serie.id, { field: serie.duration_seconds != null ? 'duration' : 'reps', text })); }} />
             <Pressable accessibilityLabel={`Valider série ${serie.ordinal} de ${getExercise(serie.exercise_id).name}`}
               style={{flex:0.6,alignItems:'center'}} onPress={()=>toggleSet(serie)}>
               {ico(serie.completed?'checkmark-circle':'ellipse-outline',23,serie.completed?C.green:C.muted)}
             </Pressable>
-          </View>)}
+          </View>;})}
         </View>)}
       </Panel>
-      <Text style={[styles.muted,{marginBottom:10}]}>Le chronomètre est manuel par défaut ; l'option automatique se règle dans Profil.</Text>
       {currentBlock.exerciseIds.map((id,i)=><View key={`add-${id}`} style={{marginBottom:7}}>
         <Button label={`+ Série : ${isSuperset?`${String.fromCharCode(65+i)} · `:''}${getExercise(id).name}`}
           secondary compact icon="add" onPress={()=>addSetToExercise(id)}/>
@@ -870,48 +909,59 @@ function Main() {
 
   function assistantScreen() {
     return <>
-      <ScreenTitle title="Séance suggérée" subtitle="Assistant facultatif • tu gardes le contrôle"
+      <ScreenTitle title="Séance suggérée"
         back={()=>setPage(coachReturn)} />
       <Panel>
-        <Text style={styles.cardTitle}>1. Muscles à entraîner</Text>
-        <Text style={[styles.muted,{marginTop:7,marginBottom:12}]}>Sélectionne de 1 à 3 groupes musculaires.</Text>
+        <Text style={[styles.cardTitle,{marginBottom:12}]}>Muscles · 3 maximum</Text>
         <View style={{flexDirection:'row',flexWrap:'wrap',gap:7}}>
           {COACH_MUSCLES.map(m=><Chip key={m} label={m} active={coachMuscles.includes(m)}
             onPress={()=>{setCoachPreview(null);setCoachError('');setCoachMuscles(old=>old.includes(m)?old.filter(x=>x!==m):old.length<3?[...old,m]:old);}}/>)}
         </View>
-        <Text style={[styles.formLabel,{marginTop:15}]}>Temps disponible (minutes)</Text>
-        <TextInput style={styles.field} value={coachMinutes} keyboardType="number-pad" onChangeText={v=>{setCoachMinutes(v);setCoachPreview(null);}} placeholder="Ex : 100 pour 1 h 40" placeholderTextColor={C.muted} />
+        <Text style={[styles.formLabel,{marginTop:15}]}>Temps disponible</Text>
+        <View style={{flexDirection:'row',gap:12}}>
+          <View style={{flex:1}}>
+            <Text style={styles.muted}>Heures</Text>
+            <TextInput style={styles.field} value={coachHours} keyboardType="number-pad" maxLength={2}
+              accessibilityLabel="Temps disponible en heures" onChangeText={v=>{setCoachHours(v.replace(/\D/g,''));setCoachPreview(null);setCoachError('');}}
+              placeholder="0" placeholderTextColor={C.muted} />
+          </View>
+          <View style={{flex:1}}>
+            <Text style={styles.muted}>Minutes</Text>
+            <TextInput style={styles.field} value={coachMinutes} keyboardType="number-pad" maxLength={2}
+              accessibilityLabel="Minutes supplémentaires du temps disponible" onChangeText={v=>{setCoachMinutes(v.replace(/\D/g,''));setCoachPreview(null);setCoachError('');}}
+              placeholder="0" placeholderTextColor={C.muted} />
+          </View>
+        </View>
+        <Text style={styles.muted}>25 min à 3 h</Text>
         <View style={{flexDirection:'row',flexWrap:'wrap',gap:6,marginTop:8}}>
-          {[45,60,75,90,100,120].map(n=><Chip key={n} label={n===100?'1 h 40':`${n} min`}
-            active={Number(coachMinutes)===n} onPress={()=>{setCoachMinutes(String(n));setCoachPreview(null);}}/>)}
+          {[45,60,75,90,100,120].map(n=><Chip key={n} label={minutesLabel(n)}
+            active={coachTotalMinutes===n} onPress={()=>{setCoachHours(String(Math.floor(n/60)));setCoachMinutes(String(n%60));setCoachPreview(null);setCoachError('');}}/>)}
         </View>
       </Panel>
       <View style={{height:12}}/>
       <Panel>
-        <Text style={styles.cardTitle}>2. Objectif de cette séance</Text>
-        <Text style={[styles.muted,{marginVertical:8}]}>Par défaut, celui enregistré dans ton profil.</Text>
+        <Text style={[styles.cardTitle,{marginBottom:8}]}>Objectif</Text>
         <View style={{flexDirection:'row',flexWrap:'wrap',gap:7}}>
           {GOALS.map(g=><Chip key={g.id} label={g.label} active={coachGoal===g.id} onPress={()=>{setCoachGoal(g.id);setCoachPreview(null);}} />)}
         </View>
-        <Text style={styles.formLabel}>Niveau d'expérience</Text>
+        <Text style={styles.formLabel}>Niveau d’expérience</Text>
         <View style={{flexDirection:'row',flexWrap:'wrap',gap:7}}>
           {LEVELS.map(l=><Chip key={l.id} label={l.label} active={coachLevel===l.id} onPress={()=>{setCoachLevel(l.id);setCoachPreview(null);}}/>)}
         </View>
-        <Text style={[styles.muted,{marginTop:10}]}>Échauffement, séries, repos et transitions sont inclus dans la durée estimée. La durée réelle varie selon ton rythme et les machines disponibles.</Text>
         <View style={{height:15}}/><Button label="Proposer une séance" icon="sparkles-outline" onPress={proposeCoachWorkout}/>
         {coachError? <Text style={[styles.muted,{color:C.red,marginTop:9}]}>{coachError}</Text>:null}
       </Panel>
       {coachPreview && <>
         <View style={{height:18}}/>
-        <H>3. Aperçu modifiable</H>
+        <H>Aperçu</H>
         <Panel>
-          <Text style={styles.cardTitle}>{coachPreview.items.length} exercices • environ {coachPreview.estimated_minutes} min / {coachPreview.target_minutes} min</Text>
-          <Text style={[styles.muted,{marginTop:7}]}>Échauffement {coachPreview.warmup_minutes} min • retour au calme {coachPreview.cooldown_minutes} min (inclus). Les éventuelles minutes libres sont une marge de sécurité.</Text>
+          <Text style={styles.cardTitle}>{coachPreview.items.length} exercices • environ {minutesLabel(coachPreview.estimated_minutes)} / {minutesLabel(coachPreview.target_minutes)}</Text>
+          <Text style={[styles.muted,{marginTop:7}]}>Inclus : échauffement {coachPreview.warmup_minutes} min · retour au calme {coachPreview.cooldown_minutes} min</Text>
           {coachPreview.items.map((item,i)=><View key={item.exercise_id} style={[styles.settingLine,{alignItems:'flex-start',gap:8}]}>
             <Text style={[styles.blueLink,{minWidth:20}]}>{i+1}.</Text>
             <View style={{flex:1}}><Text style={styles.bodyText}>{item.name}</Text>
               <Text style={styles.muted}>{item.muscle} • {item.sets} séries × {item.reps} rép. • repos {item.rest_seconds} s</Text>
-              <Text style={styles.muted}>≈ {item.estimated_minutes.toLocaleString('fr-FR')} min • {item.reason}</Text>
+              <Text style={styles.muted}>≈ {item.estimated_minutes.toLocaleString('fr-FR')} min</Text>
             </View>
           </View>)}
         </Panel>
@@ -922,54 +972,13 @@ function Main() {
           <Text style={styles.formLabel}>Enregistrer dans le dossier</Text>
           {folders.length ? <View style={{flexDirection:'row',flexWrap:'wrap',gap:7,marginVertical:8}}>
             {folders.map(f=><Chip key={f.id} label={f.name} active={coachFolder===f.id} onPress={()=>setCoachFolder(f.id)}/>)}
-          </View>:<Text style={styles.muted}>Aucun dossier. Crée un dossier depuis l'accueil avant d'enregistrer.</Text>}
-          <Text style={[styles.muted,{marginVertical:10}]}>Rien n'est enregistré automatiquement. Tu pourras réorganiser, remplacer, ajouter ou supprimer des exercices et ajuster chaque série après l'enregistrement.</Text>
+          </View>:<Text style={styles.muted}>Aucun dossier. Crée un dossier depuis l’accueil avant d’enregistrer.</Text>}
+          <View style={{height:10}} />
           <Button label="Enregistrer ce brouillon" icon="save-outline" disabled={!coachFolder||!coachTitle.trim()} onPress={saveCoachWorkout}/>
           <View style={{height:8}}/><Button label="Recalculer la proposition" secondary onPress={proposeCoachWorkout}/>
         </Panel>
       </>}
     </>;
-  }
-
-  function timerScreen() {
-    const circumference = 2 * Math.PI * 104;
-    const fraction = restBase ? Math.min(1, Math.max(0, restSeconds / restBase)) : 0;
-    return <View style={{ flex: 1 }}>
-      <View style={{ alignItems: 'flex-end', marginBottom: 25 }}>
-        <Pressable onPress={() => setPage('workout')}><Text style={styles.blueLink}>Passer</Text></Pressable>
-      </View>
-      <View style={{ justifyContent: 'center', alignItems: 'center', flex: 1 }}>
-        <View style={{ width: 260, height: 260, justifyContent: 'center', alignItems: 'center' }}>
-          <Svg width={250} height={250} viewBox="0 0 250 250" style={{ position: 'absolute' }}>
-            <Circle cx={125} cy={125} r={104} stroke={C.surfaceRaised} strokeWidth={10} fill="none" />
-            <Circle cx={125} cy={125} r={104} stroke={C.blue} strokeWidth={10} fill="none"
-              strokeLinecap="round" strokeDasharray={`${circumference} ${circumference}`}
-              strokeDashoffset={circumference * (1 - fraction)} rotation={-90} origin="125, 125" />
-          </Svg>
-          <Text style={styles.cardTitle}>Repos</Text>
-          <Text style={styles.timerText}>{durationLabel(restSeconds)}</Text>
-          <Text style={styles.muted}>/ {durationLabel(restBase)}</Text>
-        </View>
-        {restSeconds === 0 && <Text style={[styles.green, { marginTop: 17 }]}>C'est reparti ! 💪</Text>}
-        <View style={[styles.inlineRow, { marginTop: 25, gap: 16 }]}>
-          <IconButton name="remove" onPress={() => shiftRest(-30)} />
-          <IconButton name={restPaused ? 'play' : 'pause'} background={C.surfaceSoft}
-            onPress={toggleRestPause} />
-          <IconButton name="add" onPress={() => shiftRest(30)} />
-        </View>
-        <View style={styles.inlineRow}><Text style={styles.muted}>−30 s</Text><View style={{ width: 62 }} />
-          <Text style={styles.muted}>+30 s</Text></View>
-      </View>
-      <Panel><Text style={styles.muted}>Prochain exercice</Text>
-        <View style={[styles.inlineRow, { marginTop: 9 }]}>
-          <ExerciseGlyph exercise={getExercise((workoutBlocks[Math.min(exerciseIndex+1,workoutBlocks.length-1)]?.exerciseIds[0] ?? currentBlock?.exerciseIds[0] ?? 'bench'))} />
-          <View><Text style={styles.cardTitle}>{getExercise((workoutBlocks[Math.min(exerciseIndex+1,workoutBlocks.length-1)]?.exerciseIds[0] ?? currentBlock?.exerciseIds[0] ?? 'bench')).name}</Text>
-          <Text style={styles.muted}>Continue à ton rythme</Text></View>
-        </View>
-      </Panel>
-      <View style={{ height: 20 }} />
-      <Button label="Revenir à la séance" onPress={() => setPage('workout')} />
-    </View>;
   }
 
   function calendarScreen() {
@@ -979,7 +988,7 @@ function Main() {
     const cells=Array.from({length:leading+days},(_,i)=>i-leading+1);
     const byDay=(day:number)=>history.filter(h=>{ const d=new Date(h.finished_at||0);return d.getFullYear()===year && d.getMonth()===index && d.getDate()===day;});
     return <>
-      <ScreenTitle title="Calendrier" subtitle="Tes entraînements passés, sans encombrer l'accueil" />
+      <ScreenTitle title="Calendrier" />
       <Panel>
         <View style={[styles.inlineRow,{justifyContent:'space-between',marginBottom:18}]}>
           <IconButton name="chevron-back" onPress={()=>setCalendarOffset(v=>v-1)}/>
@@ -1004,7 +1013,7 @@ function Main() {
   }
 
   function progressScreen() {
-    const now = Date.now();
+    const now = clockNow;
     const since = progressFilter === 'Sem.' ? now - 7 * 86400000 : progressFilter === 'Mois' ? now - 30 * 86400000 : progressFilter === 'Année' ? now - 365 * 86400000 : 0;
     const scopeSessions = history.filter((session) => statsScope === 'global' ||
       (statsScope === 'folder' ? (session.folder_id ?? templates.find(t=>t.id===session.template_id)?.folder_id) === statsFolder : session.template_id === statsTemplate));
@@ -1015,8 +1024,10 @@ function Main() {
     const currentIds = new Set(sessions.map((s) => s.id));
     const exerciseIds = [...new Set(sets.map((s) => s.exercise_id))];
     const chosenExercise = exerciseIds.includes(progressExercise) ? progressExercise : (exerciseIds[0] ?? 'bench');
-    const chosenSets = sets.filter((s) => s.exercise_id === chosenExercise);
-    const maxWeight = chosenSets.length ? Math.max(...chosenSets.map((s) => s.weight)) : 0;
+    const exerciseSets = sets.filter((s) => s.exercise_id === chosenExercise);
+    const timedTrend = exerciseSets[0]?.duration_seconds != null;
+    const chosenSets = exerciseSets.filter(set => (set.duration_seconds != null) === timedTrend);
+    const maxWeight = chosenSets.length ? Math.max(...chosenSets.map((s) => timedTrend ? s.duration_seconds! : s.weight)) : 0;
     const perSession = sessions.slice(0, 9).reverse().map((s) => ({
       key: s.id, date: shortDate(s.finished_at ?? 0),
       value: volume(sets.filter((x) => x.session_id === s.id)),
@@ -1028,7 +1039,7 @@ function Main() {
       return counts;
     },{})).sort((a,b)=>b[1]-a[1]);
     return <>
-      <ScreenTitle title="Progression" subtitle="Statistiques globales, par dossier ou par séance" />
+      <ScreenTitle title="Progression" />
       <View style={[styles.inlineRow,{marginBottom:12,gap:7}]}>
         {([['global','Global'],['folder','Dossier'],['template','Séance']] as const).map(([key,label])=><View key={key} style={{flex:1}}><Chip label={label} active={statsScope===key} onPress={()=>setStatsScope(key)}/></View>)}
       </View>
@@ -1048,7 +1059,7 @@ function Main() {
         <Panel style={{ flex: 1 }}><Text style={styles.muted}>Volume total</Text>
           <Text style={styles.bigStat}>{fmt(vol)} kg</Text><Text style={styles.green}>{sets.length} séries</Text></Panel>
         <Panel style={{ flex: 1 }}><Text style={styles.muted}>Séances</Text>
-          <Text style={styles.bigStat}>{currentIds.size}</Text><Text style={styles.green}>Enregistrées</Text></Panel>
+          <Text style={styles.bigStat}>{currentIds.size}</Text></Panel>
       </View>
       <View style={[styles.grid2, { marginTop: 10 }]}>
         <Panel style={{ flex: 1 }}><Text style={styles.muted}>Moyenne / séance</Text>
@@ -1061,7 +1072,7 @@ function Main() {
         <View style={[styles.inlineRow,{justifyContent:'space-between',marginBottom:5}]}><Text style={styles.bodyText}>{muscle}</Text><Text style={styles.muted}>{count} séries</Text></View>
         <View style={[styles.progressTrack,{marginVertical:0}]}><View style={[styles.progressFill,{width:`${100*count/Math.max(1,muscleCounts[0][1])}%`}]} /></View>
       </View>) : <Text style={styles.muted}>Aucune série terminée sur cette période.</Text>}
-      <Text style={styles.muted}>Ces valeurs comptent les muscles principaux des exercices, sans additionner les muscles secondaires.</Text>
+      <Text style={styles.muted}>Muscles principaux uniquement.</Text>
       </Panel>
       <View style={{ height: 18 }} /><H>Volume par séance (kg)</H>
       <Panel>
@@ -1081,13 +1092,13 @@ function Main() {
         </ScrollView>
         <Panel>
           <Text style={styles.cardTitle}>{getExercise(chosenExercise).name}</Text>
-          <Text style={[styles.muted, { marginTop: 7 }]}>Charge maximale enregistrée</Text>
-          <Text style={styles.bigStat}>{fmt(maxWeight, 2)} kg</Text>
+          <Text style={[styles.muted, { marginTop: 7 }]}>{timedTrend ? 'Meilleure durée enregistrée' : 'Charge maximale enregistrée'}</Text>
+          <Text style={styles.bigStat}>{timedTrend ? `${formatSetDuration(maxWeight)} min:ss` : `${fmt(maxWeight, 2)} kg`}</Text>
           <Text style={[styles.muted, { marginTop: 7 }]}>{chosenSets.length} séries sur la période sélectionnée</Text>
           <View style={{ height: 16 }} />
-          <ExerciseTrend points={sessions.slice().reverse().map((session) => {
+          <ExerciseTrend timed={timedTrend} points={sessions.slice().reverse().map((session) => {
             const best = chosenSets.filter((row) => row.session_id === session.id);
-            return best.length ? { date: shortDate(session.finished_at ?? 0), value: Math.max(...best.map((x) => x.weight)) } : null;
+            return best.length ? { date: shortDate(session.finished_at ?? 0), value: Math.max(...best.map((x) => timedTrend ? x.duration_seconds! : x.weight)) } : null;
           }).filter((x): x is { date: string; value: number } => x !== null)} />
         </Panel>
       </> : <Empty title="Pas encore de record" subtitle="Tes performances apparaîtront après ta première séance." icon="stats-chart-outline" />}
@@ -1128,7 +1139,7 @@ function Main() {
           </View>
           {exSets.map((set) => <View key={set.id} style={styles.settingLine}>
             <Text style={styles.muted}>Série {set.ordinal}{set.set_kind==='drop'?' (drop)':''}</Text>
-            <Text style={styles.bodyText}>{fmt(set.weight, 2)} kg × {set.reps} reps{set.rpe !== null ? ` • RPE ${set.rpe}` : ''}</Text>
+            <Text style={styles.bodyText}>{set.duration_seconds != null ? `${formatSetDuration(set.duration_seconds)} min:ss${set.weight ? ` · ${fmt(set.weight, 2)} kg` : ''}` : `${fmt(set.weight, 2)} kg × ${set.reps} reps`}{set.rpe !== null ? set.rpe === 10 ? ' • À l’échec' : ` • RPE ${set.rpe}` : ''}</Text>
           </View>)}
         </Panel>;
       })}
@@ -1140,20 +1151,14 @@ function Main() {
       const snapshot = await exportAllData(db);
       const stamp = new Date().toISOString().slice(0, 10);
       const content = kind === 'json' ? JSON.stringify(snapshot, null, 2) : [
-        'Date;Séance;Exercice;Série;Poids (kg);Répétitions;RPE;Volume (kg)',
+        'Date;Séance;Exercice;Série;Poids (kg);Répétitions;RPE;Volume (kg);Durée (s)',
         ...historySets.slice().reverse().map((s) => {
           const fields = [new Date(s.finished_at).toLocaleDateString('fr-FR'), s.template_title, getExercise(s.exercise_id).name,
-            s.ordinal, s.weight, s.reps, s.rpe ?? '', s.weight * s.reps];
+            s.ordinal, s.weight, s.duration_seconds == null ? s.reps : '', s.rpe ?? '', s.duration_seconds == null ? s.weight * s.reps : '', s.duration_seconds ?? ''];
           return fields.map((cell) => '"' + String(cell).replace(/"/g, '""') + '"').join(';');
         }),
       ].join('\n');
-      if (!(await Sharing.isAvailableAsync())) { Alert.alert('Partage indisponible', 'Le partage de fichier est indisponible sur cet appareil.'); return; }
-      // API FileSystem moderne (Expo SDK 58), compatible avec Expo Go.
-      const file = new File(Paths.cache, `training-programme-${stamp}.${kind}`);
-      await file.write(kind === 'csv' ? '\uFEFF' + content : content);
-      await Sharing.shareAsync(file.uri, {
-        UTI: kind === 'csv' ? 'public.comma-separated-values-text' : 'public.json',
-      });
+      await shareFile(`training-programme-${stamp}.${kind}`, kind === 'csv' ? '\uFEFF' + content : content, kind);
     });
   }
 
@@ -1164,7 +1169,7 @@ function Main() {
         <View style={styles.inlineRow}>
           <View style={[styles.avatar]}>{ico('person', 29, C.white)}</View>
           <View style={{ flex: 1 }}><Text style={styles.cardTitle}>{settings.username || 'Sportif'}</Text>
-            <Text style={styles.muted}>Bienvenue sur Training Programme</Text></View>
+            </View>
         </View>
       </Panel>
       <View style={{ height: 18 }} /><H>Mes infos</H>
@@ -1182,7 +1187,7 @@ function Main() {
       <View style={{ height: 18 }} /><H>Préférences</H>
       <Panel>
         <View style={styles.settingLine}><Text style={styles.bodyText}>Unités</Text><Text style={styles.blueLink}>kg</Text></View>
-        <Text style={[styles.bodyText,{marginTop:10}]}>Apparence de l'application</Text>
+        <Text style={[styles.bodyText,{marginTop:10}]}>Apparence de l’application</Text>
         <View style={[styles.inlineRow,{marginTop:10,marginBottom:8}]}>
           <View style={{flex:1}}><Button label="Sombre" icon="moon-outline" secondary={themeMode!=='dark'} onPress={()=>void selectTheme('dark')}/></View>
           <View style={{flex:1}}><Button label="Clair" icon="sunny-outline" secondary={themeMode!=='light'} onPress={()=>void selectTheme('light')}/></View>
@@ -1193,30 +1198,25 @@ function Main() {
           {[60, 90, 120, 180].map((seconds) => <Chip key={seconds} label={`${seconds} s`} active={Number(settings.rest_duration ?? 120) === seconds}
             onPress={() => void safe(async () => { const next = { ...settings, rest_duration: String(seconds) }; await saveSettings(db, next); setSettings(next); })} />)}
         </View>
-        <Pressable style={styles.settingLine} onPress={() => void safe(async () => {
-          const next = { ...settings, auto_rest: settings.auto_rest === '0' ? '1' : '0' };
-          await saveSettings(db, next); setSettings(next);
-        })}><Text style={styles.bodyText}>Repos automatique après une série</Text>
-          <Text style={styles.blueLink}>{settings.auto_rest === '1' ? 'Oui' : 'Non (défaut)'}</Text></Pressable>
-        <View style={styles.settingLine}><Text style={styles.bodyText}>Données</Text><Text style={styles.green}>Stockées sur cet iPhone</Text></View>
+        <View style={styles.settingLine}><Text style={styles.bodyText}>Données</Text><Text style={styles.green}>Enregistrées sur cet appareil</Text></View>
       </Panel>
       <View style={{ height: 16 }} />
       <Panel>
-        <Text style={styles.cardTitle}>Assistant d’entraînement (facultatif)</Text>
-        <Text style={[styles.muted,{marginTop:7,marginBottom:13}]}>Propose une séance selon les muscles, ton objectif et le temps disponible. Tu peux la modifier avant de la lancer.</Text>
+        <Text style={[styles.cardTitle,{marginBottom:12}]}>Séance suggérée</Text>
         <Button label="Composer une séance suggérée" secondary icon="sparkles-outline" onPress={()=>openCoach()} />
       </Panel>
       <View style={{height:12}}/>
       <Button label="Modifier mon profil" icon="create-outline" onPress={openProfileEditor} />
-      <View style={{ height: 20 }} /><H>Exporter mes données</H>
-      <Text style={[styles.muted, { marginBottom: 12 }]}>Sauvegarde externe recommandée : enregistre les fichiers dans l'app Fichiers ou sur iCloud Drive.</Text>
+      <PlatformTools />
+      <View style={{ height: 20 }} /><H>Exporter mes séances</H>
+      <Text style={[styles.muted,{marginBottom:10}]}>Pour les aliments et le journal, utilise l’export de l’onglet Nutrition.</Text>
       <View style={styles.grid2}>
         <View style={{ flex: 1 }}><Button label="Historique CSV" secondary icon="document-text-outline" onPress={() => void shareExport('csv')} /></View>
-        <View style={{ flex: 1 }}><Button label="Sauvegarde JSON" secondary icon="download-outline" onPress={() => void shareExport('json')} /></View>
+        <View style={{ flex: 1 }}><Button label="Export JSON" secondary icon="download-outline" onPress={() => void shareExport('json')} /></View>
       </View>
       <View style={{height:20}} /><H>Zone sensible</H>
       <Panel><Text style={styles.bodyText}>Effacer mes statistiques</Text>
-        <Text style={[styles.muted,{marginTop:8,marginBottom:12}]}>Supprime l'historique des séances terminées et leurs performances. Les dossiers, programmes, notes, 1RM et réglages sont conservés. Une sauvegarde JSON est fortement conseillée.</Text>
+        <Text style={[styles.muted,{marginTop:8,marginBottom:12}]}>Supprime l’historique des séances terminées et leurs performances. Les dossiers, programmes, notes, 1RM et réglages sont conservés. Une sauvegarde JSON est fortement conseillée.</Text>
         <Button label="Réinitialiser mes statistiques" danger icon="trash-outline" onPress={()=>{setResetInput('');setModal('resetStats');}}/>
       </Panel>
       <View style={{ height: 20 }} /><Text style={[styles.muted, { textAlign: 'center', fontSize: 12 }]}>Training Programme • V0.8 • Données locales</Text>
@@ -1233,8 +1233,8 @@ function Main() {
               modal === 'plan' ? 'Objectifs de l’exercice' : modal === 'resetStats' ? 'Effacer toutes les statistiques' : modal === 'max' ? 'Ma charge maximale (1RM)' : modal === 'custom' ? 'Mon exercice' : modal === 'create' ? 'Nouvelle séance' : modal === 'set' ? 'Modifier la série' : 'Modifier mon profil'}
           </Text><IconButton name="close" onPress={() => setModal('none')} /></View>
           {modal === 'resetStats' && <>
-            <Text style={styles.bodyText}>Cette action supprimera définitivement toutes les séances enregistrées dans l'historique, les volumes et les records calculés.</Text>
-            <Text style={[styles.muted,{marginTop:9}]}>Les dossiers, programmes, notes, 1RM et paramètres resteront enregistrés. Il est conseillé d'exporter une sauvegarde JSON avant cette action.</Text>
+            <Text style={styles.bodyText}>Cette action supprimera définitivement toutes les séances enregistrées dans l’historique, les volumes et les records calculés.</Text>
+            <Text style={[styles.muted,{marginTop:9}]}>Les dossiers, programmes, notes, 1RM et paramètres resteront enregistrés. Il est conseillé d’exporter une sauvegarde JSON avant cette action.</Text>
             <Text style={[styles.formLabel,{marginTop:18}]}>Pour confirmer, tape exactement « oui » :</Text>
             <TextInput style={styles.field} value={resetInput} onChangeText={setResetInput} placeholder="oui" placeholderTextColor={C.muted} autoCapitalize="none" autoCorrect={false} />
             <View style={{height:18}}/><Button label="Effacer définitivement mes statistiques" danger disabled={resetInput !== 'oui'} onPress={confirmResetStatistics} />
@@ -1260,27 +1260,33 @@ function Main() {
           </>}
           {modal === 'plan' && <>
             <Text style={styles.muted}>{getExercise(editingPlanExercise||'bench').name}</Text>
-            <Button label="Suggérer séries / reps selon mon objectif" secondary icon="sparkles-outline" onPress={()=>{
+            {!planTimed && <Button label="Suggérer séries / reps selon mon objectif" secondary icon="sparkles-outline" onPress={()=>{
               const e=getExercise(editingPlanExercise||'bench');
               const age=Number(settings.age);const suggestion=proposeExercise(e,normalizeGoal(settings.goal),
                 LEVELS.some(l=>l.id===settings.experience)?settings.experience as Experience:'intermediate',age>0?age:undefined);
-              setPlanSets(String(suggestion.sets));setPlanReps(String(suggestion.reps));setPlanRest(String(suggestion.rest_seconds));setPlanFailure(false);
+              setPlanSets(String(suggestion.sets));setPlanReps(String(suggestion.reps));setPlanRepsMax('');setPlanRest(String(suggestion.rest_seconds));setPlanFailure(false);
               Alert.alert('Proposition uniquement','Tu peux ajuster ces valeurs puis les enregistrer. Aucune modification automatique des autres exercices.');
-            }}/>
-            <Text style={[styles.muted,{marginVertical:7}]}>Optionnel : aucun changement avant « Enregistrer les objectifs ».</Text>
-            <Text style={styles.formLabel}>Nombre de séries</Text>
+            }}/>}
+            <Text style={styles.formLabel}>Séries</Text>
             <TextInput style={styles.field} keyboardType="number-pad" value={planSets} onChangeText={setPlanSets} />
-            <Text style={styles.formLabel}>Répétitions visées par série</Text>
-            <View style={{flexDirection:'row',gap:8,marginBottom:6}}>
-             <Chip label="Nombre de répétitions" active={!planFailure} onPress={()=>setPlanFailure(false)}/>
-             <Chip label="Échec technique" active={planFailure} onPress={()=>setPlanFailure(true)}/>
+            <Text style={styles.formLabel}>Objectif par série</Text>
+            <View style={{flexDirection:'row',flexWrap:'wrap',gap:8,marginBottom:6}}>
+             <Chip label="Répétitions" active={!planTimed && !planFailure} onPress={()=>{setPlanTimed(false);setPlanFailure(false);}}/>
+             <Chip label="Échec technique" active={!planTimed && planFailure} onPress={()=>{setPlanTimed(false);setPlanFailure(true);}}/>
+             <Chip label="Durée" active={planTimed} onPress={()=>{setPlanTimed(true);setPlanFailure(false);}}/>
             </View>
-            {!planFailure ? <TextInput style={styles.field} keyboardType="number-pad" value={planReps} onChangeText={setPlanReps} /> : <>
-              <Text style={styles.muted}>Le nombre réalisé sera saisi pendant la séance. Repère indicatif pour calculer la charge :</Text>
+            {planTimed ? <View style={{flexDirection:'row',gap:12}}>
+              <View style={{flex:1}}><Text style={styles.formLabel}>Minutes</Text><TextInput accessibilityLabel="Durée prévue en minutes" style={styles.field} keyboardType="number-pad" value={planMinutes} onChangeText={setPlanMinutes}/></View>
+              <View style={{flex:1}}><Text style={styles.formLabel}>Secondes</Text><TextInput accessibilityLabel="Secondes supplémentaires" style={styles.field} keyboardType="number-pad" value={planSeconds} onChangeText={setPlanSeconds}/></View>
+            </View> : !planFailure ? <View style={{flexDirection:'row',gap:12}}>
+              <View style={{flex:1}}><Text style={styles.formLabel}>Minimum</Text><TextInput accessibilityLabel="Répétitions minimum" style={styles.field} keyboardType="number-pad" value={planReps} onChangeText={setPlanReps} placeholder="Facultatif" placeholderTextColor={C.muted}/></View>
+              <View style={{flex:1}}><Text style={styles.formLabel}>Maximum</Text><TextInput accessibilityLabel="Répétitions maximum" style={styles.field} keyboardType="number-pad" value={planRepsMax} onChangeText={setPlanRepsMax} placeholder="Facultatif" placeholderTextColor={C.muted}/></View>
+            </View> : <>
+              <Text style={styles.muted}>Répétitions estimées à l’échec :</Text>
               <TextInput style={styles.field} keyboardType="number-pad" value={planFailureGuide} onChangeText={setPlanFailureGuide}/>
               <Text style={styles.muted}>Arrête-toi avant de perdre le contrôle du mouvement.</Text>
             </>}
-            <Text style={styles.formLabel}>Temps de repos (secondes, 0 pour libre)</Text>
+            <Text style={styles.formLabel}>Repos (s) · 0 = libre</Text>
             <TextInput style={styles.field} keyboardType="number-pad" value={planRest} onChangeText={setPlanRest} />
             <Text style={styles.formLabel}>Superset (même numéro pour les exercices à enchaîner)</Text>
             <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>
@@ -1290,10 +1296,9 @@ function Main() {
               <Text style={styles.bodyText}>Ajouter un dropset final (-20 % suggéré)</Text>
               {ico(planDropset?'checkbox':'square-outline',22,planDropset?C.blue:C.muted)}
             </Pressable>
-            <Text style={styles.formLabel}>Notes / indications personnelles pour cet exercice</Text>
+            <Text style={styles.formLabel}>Mes consignes</Text>
             <TextInput style={[styles.field,{minHeight:100,textAlignVertical:'top',paddingVertical:12}]} multiline value={planNotes} onChangeText={setPlanNotes} maxLength={2000}
               placeholder="Ex : prises neutres, ne pas balancer le buste, contrôler la descente..." placeholderTextColor={C.muted} />
-            <Text style={styles.muted}>Ces notes seront visibles pendant la séance, même dans un superset.</Text>
             <View style={{height:13}}/><Button label="Enregistrer les objectifs" onPress={savePlan}/>
           </>}
           {modal === 'create' && <>
@@ -1308,12 +1313,17 @@ function Main() {
               <IconButton name="remove" onPress={() => setWeightInput(String(Math.max(0, parseNumber(weightInput) - 2.5)).replace('.', ','))} />
               <IconButton name="add" onPress={() => setWeightInput(String((parseNumber(weightInput) || 0) + 2.5).replace('.', ','))} />
             </View>
-            <Text style={styles.formLabel}>Répétitions</Text>
+            <Text style={styles.formLabel}>{editingTimed ? 'Durée (min:ss ou secondes)' : 'Répétitions'}</Text>
             <View style={styles.numberRow}>
-              <TextInput style={[styles.field, { flex: 1 }]} keyboardType="number-pad" value={repsInput} onChangeText={setRepsInput} />
-              <IconButton name="remove" onPress={() => setRepsInput(String(Math.max(0, (Number(repsInput) || 0) - 1)))} />
-              <IconButton name="add" onPress={() => setRepsInput(String((Number(repsInput) || 0) + 1))} />
+              <TextInput accessibilityLabel={editingTimed ? 'Durée réalisée' : 'Répétitions réalisées'} style={[styles.field, { flex: 1 }]} keyboardType={editingTimed ? 'numbers-and-punctuation' : 'number-pad'} value={repsInput} onChangeText={setRepsInput} />
+              {!editingTimed && <IconButton name="remove" onPress={() => setRepsInput(String(Math.max(0, (Number(repsInput) || 0) - 1)))} />}
+              {!editingTimed && <IconButton name="add" onPress={() => setRepsInput(String((Number(repsInput) || 0) + 1))} />}
             </View>
+            {!editingTimed && <><Text style={styles.formLabel}>Répétitions encore possibles (facultatif)</Text>
+              <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>
+                <Chip label="Non renseigné" active={!rpeInput.trim()} onPress={()=>setRpeInput('')}/>
+                {[0,1,2,3].map(reserve => <Chip key={reserve} label={reserve === 0 ? 'À l’échec' : `${reserve} rép.`} active={rpeInput.trim() !== '' && parseNumber(rpeInput) === 10 - reserve} onPress={()=>setRpeInput(String(10-reserve))}/>)}
+              </View></>}
             <Text style={styles.formLabel}>RPE (facultatif, 0 à 10)</Text>
             <TextInput style={styles.field} keyboardType="decimal-pad" placeholder="Ex : 8" placeholderTextColor={C.muted}
               value={rpeInput} onChangeText={setRpeInput} />
@@ -1324,7 +1334,15 @@ function Main() {
             <Text style={styles.muted}>{getExercise(selectedExercise).name}</Text>
             <Text style={styles.formLabel}>1RM mesuré ou estimé (kg)</Text>
             <TextInput style={styles.field} keyboardType="decimal-pad" placeholder="Ex : 80" placeholderTextColor={C.muted} value={maxInput} onChangeText={setMaxInput}/>
-            <Text style={[styles.muted,{marginVertical:12}]}>La charge calculée n'est qu'une suggestion, pas une prescription. Aucun test maximal n'est nécessaire.</Text>
+            <Text style={styles.formLabel}>Réserve pour les charges suggérées (0 à 10)</Text>
+            <TextInput accessibilityLabel="Répétitions en réserve pour les charges suggérées" style={styles.field} keyboardType="number-pad" value={maxReserve} onChangeText={setMaxReserve}/>
+            <Text style={styles.muted}>Plus de réserve = charge suggérée plus légère. Objectif à l’échec : réserve 0.</Text>
+            {rmReviews.get(selectedExercise) && <Text style={[styles.muted,{marginTop:10,color:C.gold}]}>1RM à réévaluer · {rmReviews.get(selectedExercise)}</Text>}
+            <Pressable accessibilityRole="checkbox" accessibilityState={{checked:maxReviewed}} style={styles.settingLine} onPress={()=>setMaxReviewed(value=>!value)}>
+              <Text style={[styles.bodyText,{flex:1}]}>J’ai réévalué ce 1RM aujourd’hui</Text>{ico(maxReviewed?'checkbox':'square-outline',22,maxReviewed?C.blue:C.muted)}
+            </Pressable>
+            <Text style={styles.muted}>Rappel après 6 semaines, ou 3 séances comparables concordantes. Analyse jusqu’à 15 répétitions avec difficulté renseignée.</Text>
+            <Text style={[styles.muted,{marginVertical:12}]}>La charge calculée n’est qu’une suggestion, pas une prescription. Aucun test maximal n’est nécessaire.</Text>
             <Button label="Enregistrer le 1RM" onPress={saveMax}/>
           </>}
           {modal === 'custom' && <>
@@ -1335,7 +1353,6 @@ function Main() {
             </ScrollView>
             <Text style={styles.formLabel}>Matériel</Text><TextInput style={styles.field} value={customEquipment} onChangeText={setCustomEquipment}/>
             <Text style={styles.formLabel}>Instructions personnelles</Text><TextInput style={styles.field} value={customDescription} onChangeText={setCustomDescription} multiline/>
-            <Text style={[styles.muted,{marginVertical:9}]}>Animation schématique générique tant qu'une démonstration validée n'est pas ajoutée.</Text>
             <Button label="Créer mon exercice" onPress={saveCustomExercise}/>
           </>}
           {modal === 'profile' && <>
@@ -1357,7 +1374,7 @@ function Main() {
               {LEVELS.map(l=><Chip key={l.id} label={l.label} active={(profileDraft.experience||'intermediate')===l.id}
                 onPress={()=>setProfileDraft(p=>({...p,experience:l.id}))}/>) }
             </View>
-            <Text style={[styles.muted,{marginTop:13}]}>L'âge, le poids et la taille restent sur ton appareil. Le poids et la taille ne suffisent pas à déterminer une charge ou un nombre de séries ; tu restes libre de modifier les propositions.</Text>
+            <Text style={[styles.muted,{marginTop:13}]}>Informations facultatives, incluses dans tes sauvegardes.</Text>
             <View style={{ height: 15 }} /><Button label="Enregistrer mon profil" onPress={saveProfile} />
           </>}
         </ScrollView>
@@ -1366,13 +1383,13 @@ function Main() {
   }
 
   const mainTabScreen = tab === 'home' ? homeScreen() : tab === 'templates' ? templatesScreen() :
-    tab === 'progress' ? progressScreen() : tab === 'calendar' ? calendarScreen() : profileScreen();
+    tab === 'progress' ? progressScreen() : tab === 'calendar' ? calendarScreen() : tab === 'nutrition' ? <NutritionScreen db={db} ui={{C,styles,Button,Panel,Chip}} profile={settings} onBusy={setNutritionBusy}/> : profileScreen();
   const nestedScreen = page === 'folder' ? folderScreen() : page === 'template' ? templateScreen() : page === 'library' ? libraryScreen() :
     page === 'detail' ? detailScreen() : page === 'workout' ? workoutScreen() :
-    page === 'timer' ? timerScreen() : page === 'history' ? historyScreen() : page === 'assistant' ? assistantScreen() : mainTabScreen;
+    page === 'history' ? historyScreen() : page === 'assistant' ? assistantScreen() : mainTabScreen;
   const showTabs = page === 'tabs';
 
-  return <UIContext.Provider value={{ C, styles }}><SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+  return <UIContext.Provider value={{ C, styles }}><SafeAreaView style={styles.safe} edges={['top', 'bottom', 'left', 'right']}>
     <StatusBar style={themeMode === 'light' ? 'dark' : 'light'} />
     {loading ? <View style={styles.center}><Text style={styles.title}>Training Programme</Text><Text style={styles.muted}>Chargement...</Text></View> : <>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}
@@ -1386,7 +1403,7 @@ function Main() {
 }
 
 function createStyles(C: Palette) { return StyleSheet.create({
-  safe: { flex: 1, backgroundColor: C.background },
+  safe: { flex: 1, width: '100%', maxWidth: '100%', backgroundColor: C.background },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 19, paddingTop: 21, paddingBottom: 34, flexGrow: 1 },
@@ -1420,9 +1437,10 @@ function createStyles(C: Palette) { return StyleSheet.create({
     borderWidth: 1, paddingHorizontal: 13, minHeight: 33, justifyContent: 'center', alignItems: 'center' },
   chipText: { color: C.muted, fontSize: 12, fontWeight: '700' },
   navBar: { flexDirection: 'row', backgroundColor: C.surface, borderTopColor: C.line, borderTopWidth: 1,
-    minHeight: 62, paddingTop: 7 },
-  navItem: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 3 },
-  navLabel: { color: C.muted, fontSize: 10, fontWeight: '600' },
+    width: '100%', flexShrink: 0, minHeight: 56, paddingHorizontal: 4, paddingTop: 5, paddingBottom: 4 },
+  navItem: { flex: 1, flexBasis: 0, minWidth: 0, minHeight: 44, paddingHorizontal: 2, justifyContent: 'center', alignItems: 'center', gap: 3 },
+  navIcon: { width: 28, height: 28, flexShrink: 0, position: 'relative', justifyContent: 'center', alignItems: 'center' },
+  navLabel: { color: C.muted, fontSize: 10, lineHeight: 13, fontWeight: '600', textAlign: 'center', width: '100%' },
   listLine: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 66, paddingHorizontal: 10,
     borderRadius: 11, backgroundColor: C.surface, marginBottom: 7 },
   searchBox: { backgroundColor: C.surface, borderRadius: 13, height: 44, flexDirection: 'row', alignItems: 'center',

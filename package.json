@@ -4,6 +4,11 @@
   "main": "index.ts",
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
+    "@neon/config": "^1.9.4",
+    "@neon/env": "^1.6.5",
+    "@neondatabase/auth": "0.7.0-beta",
+    "@neondatabase/serverless": "^1.2.0",
+    "@zxing/browser": "^0.2.1",
     "expo": "~58.0.19",
     "expo-asset": "~58.0.18",
     "expo-file-system": "~58.0.11",
@@ -11,20 +16,62 @@
     "expo-sharing": "~58.0.20",
     "expo-sqlite": "~58.0.14",
     "expo-status-bar": "~58.0.4",
+    "jose": "^6.2.13",
     "react": "19.3.0",
+    "react-dom": "19.3.0",
     "react-native": "0.88.0",
     "react-native-safe-area-context": "~5.10.1",
-    "react-native-svg": "15.16.0"
+    "react-native-svg": "15.16.0",
+    "react-native-web": "^0.21.4",
+    "sql.js": "^1.15.1",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.11",
+    "@types/node": "^26.6.5",
     "@types/react": "~19.3.0",
+    "@types/react-dom": "~19.3.0",
+    "@types/sql.js": "^1.4.11",
+    "@types/web-push": "^3.6.4",
+    "@vercel/node": "^27.0.2",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~58.0.4",
+    "fake-indexeddb": "^6.2.6",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:pwa": "node scripts/build-pwa.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "expo lint",
+    "test": "node tests/regressions.cjs && node tests/v07.cjs && node tests/v08.cjs && node tests/session-switch.cjs && node tests/exercise-demos.cjs && node tests/planner.test.cjs && node tests/rep-bounds.cjs && node tests/workout-progress.cjs && node tests/duration-rm.cjs && node tests/navigation.cjs",
+    "test:pwa": "node tests/pwa.cjs",
+    "preview:pwa": "node scripts/preview-pwa.mjs",
+    "build": "npm run build:pwa",
+    "deploy:vercel": "node scripts/deploy-vercel.mjs",
+    "test:sync": "node tests/sync.cjs && node tests/pwa-update.cjs && node tests/update-resume.cjs && node tests/offline-media.cjs",
+    "test:sets": "node tests/inline-sets.cjs",
+    "test:sharing": "node tests/folder-sharing.cjs",
+    "test:access": "node tests/access-lease.cjs && node tests/admin-push.cjs",
+    "test:access:neon": "node tests/access-control.cjs",
+    "test:nutrition": "node tests/nutrition.cjs && node tests/nutrition-api.cjs && node tests/nutrition-ui.cjs && node tests/nutrition-scanner.cjs",
+    "test:nutrition:live": "node tests/nutrition-api.cjs --live",
+    "test:nutrition:neon": "node tests/nutrition-neon.cjs"
   },
-  "private": true
+  "private": true,
+  "overrides": {
+    "@neondatabase/auth": {
+      "zod": "^4.6.7"
+    },
+    "@neondatabase/auth-ui": {
+      "zod": "^4.6.7"
+    },
+    "better-auth": "1.7.14",
+    "@better-auth/core": "1.7.14",
+    "@better-auth/oauth-provider": "1.7.14"
+  },
+  "type": "module"
 }

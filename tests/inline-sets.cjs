@@ -1,0 +1,34 @@
+const fs=require('node:fs'),ts=require('typescript'),assert=require('node:assert/strict');
+const {DatabaseSync}=require('node:sqlite');
+const load=(file,requireFn=require)=>{const m={exports:{}};new Function('module','exports','require',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(m,m.exports,requireFn);return m.exports;};
+const d=load('src/db.ts'), inputs=load('src/setInputs.ts');
+const {parseSetValue,createSetWriter}=load('src/setEditing.ts',name=>name==='./db'?d:name==='./setInputs'?inputs:require(name));
+const raw=new DatabaseSync(':memory:');
+const db={execAsync:async sql=>raw.exec(sql),runAsync:async(sql,...args)=>raw.prepare(sql).run(...args),getFirstAsync:async(sql,...args)=>raw.prepare(sql).get(...args)??null,getAllAsync:async(sql,...args)=>raw.prepare(sql).all(...args),withExclusiveTransactionAsync:async fn=>{raw.exec('BEGIN');try{await fn(db);raw.exec('COMMIT');}catch(e){raw.exec('ROLLBACK');throw e;}}};
+(async()=>{
+for(const [text,field,expected] of [['12,5','weight',12.5],['0','weight',0],['12','reps',12],['','weight',null],['-1','weight',null],['2.5','reps',null],['1001','reps',null],['Infinity','weight',null]])assert.equal(parseSetValue(text,field),expected);
+await d.initDatabase(db);const folder=await d.createFolder(db,'Test');const id=await d.createTemplate(db,'Test',folder);await d.addExercise(db,id,'bench');const overview=await d.fetchOverview(db),template=overview.templates[0],plans=overview.templateExercises;
+// Une ancienne meilleure performance et une dernière séance moins lourde.
+let old=await d.startSession(db,template,plans,[]);for(const s of old.sets)await d.updateLoggedSet(db,{...s,weight:100,reps:12,completed:1});await d.finishSession(db,old.session.id);await db.runAsync('UPDATE sessions SET finished_at=100,started_at=50 WHERE id=?',old.session.id);
+let last=await d.startSession(db,template,plans,[]);for(const [i,s]of last.sets.entries())await d.updateLoggedSet(db,{...s,weight:60-i*2.5,reps:10-i,completed:i===2?0:1});await d.finishSession(db,last.session.id);await db.runAsync('UPDATE sessions SET finished_at=200,started_at=150 WHERE id=?',last.session.id);
+const active=await d.startSession(db,template,plans,[]);let saved;const writer=createSetWriter(db,s=>saved=s);const [a,b,c]=active.sets;
+const history=(await d.fetchOverview(db)).historySets;
+assert.equal(inputs.previousPerformance(history,a).weight,60);assert.equal(inputs.previousPerformance(history,b).weight,57.5);assert.equal(inputs.previousPerformance(history,c),null,'ne pas reprendre une ancienne séance si la dernière ne contient pas cette série');
+assert.deepEqual(a.input,{weight:'',reps:''});
+await writer.write(a.id,'toggle');assert.equal(saved.weight,60);assert.equal(saved.reps,10);assert.equal(saved.completed,1);assert.deepEqual(saved.input,{weight:'60',reps:'10'});
+await writer.write(a.id,'toggle');assert.equal(saved.completed,0);
+await db.runAsync('UPDATE logged_sets SET rpe=7 WHERE id=?',b.id);
+await writer.write(b.id,{field:'weight',text:'62,5'});assert.equal(saved.completed,0);assert.equal(saved.input.reps,'');
+await writer.write(b.id,{field:'reps',text:'11'});assert.equal(saved.completed,1);assert.equal(saved.weight,62.5);assert.equal(saved.reps,11);assert.equal(saved.rpe,7,'conserver le RPE déjà enregistré');
+await writer.write(b.id,{field:'reps',text:''});assert.equal(saved.completed,0);assert.equal(saved.input.reps,'');
+await writer.write(b.id,'toggle');assert.equal(saved.reps,9);assert.equal(saved.weight,62.5,'ne pas écraser une saisie personnelle au clic');
+await assert.rejects(writer.write(c.id,'toggle'),/Renseigne/);
+await Promise.all([writer.write(c.id,{field:'weight',text:'0'}),writer.write(c.id,{field:'reps',text:'8'})]);assert.equal(saved.completed,1);assert.equal(saved.weight,0);
+await writer.write(c.id,{field:'reps',text:'-1'});assert.equal(saved.completed,0);
+const reopened=await d.fetchOverview(db);assert.equal(reopened.activeSets.find(s=>s.id===b.id).input.weight,'62,5');assert.equal(reopened.activeSets.find(s=>s.id===c.id).input.reps,'-1');
+const backup=await d.exportAllData(db);assert.ok(backup.settings.some(s=>s.key==='set_input:'+b.id));assert.ok(!(await d.getSettings(db))['set_input:'+b.id]);
+await writer.write(c.id,{field:'reps',text:'8'});await writer.flush();await d.finishSession(db,active.session.id);assert.equal((await db.getAllAsync("SELECT * FROM settings WHERE key LIKE 'set_input:%'")).length,0);
+assert.equal((await d.fetchOverview(db)).historySets.find(s=>s.id===b.id).weight,62.5);
+const added=await d.createLoggedSet(db,'fake','bench');assert.deepEqual(added.input,{weight:'',reps:''});await d.deleteLoggedSet(db,added.id);assert.equal(await db.getFirstAsync('SELECT * FROM settings WHERE key=?','set_input:'+added.id),null);
+raw.close();console.log('OK séries : dernière séance par série, jamais le record, cases grisées vides, copie directe/partielle, auto-validation, zéro kg, invalides, reprise, sauvegarde et nettoyage.');
+})().catch(e=>{console.error(e);process.exitCode=1;});
