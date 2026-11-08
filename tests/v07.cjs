@@ -13,7 +13,7 @@ function compile(file){
   verify(!r.diagnostics?.some(d=>d.category===ts.DiagnosticCategory.Error),`Syntaxe : ${file}`);
   return {source,js:r.outputText};
 }
-function load(file){const r=compile(file),mod={exports:{}};new Function('module','exports','require',r.js)(mod,mod.exports,require);return {api:mod.exports,source:r.source};}
+function load(file){const r=compile(file);return {api:require('./sync.cjs').load(path.join(base,file)),source:r.source};}
 const app=compile('App.tsx').source;
 const motion=compile('src/ExerciseMotion.tsx').source;
 const dbs=load('src/db.ts');

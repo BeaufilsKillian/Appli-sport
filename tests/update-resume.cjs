@@ -1,7 +1,7 @@
 const fs=require('node:fs'),ts=require('typescript'),assert=require('node:assert/strict');
 const {DatabaseSync}=require('node:sqlite');
 const load=(file,custom=require)=>{const m={exports:{}};new Function('module','exports','require',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(m,m.exports,custom);return m.exports;};
-const d=load('src/db.ts'), {saveUpdateResume,takeUpdateResume}=load('src/updateResume.ts');
+const d=require('./sync.cjs').load('src/db.ts'), {saveUpdateResume,takeUpdateResume}=load('src/updateResume.ts');
 const {previousPerformance}=load('src/setInputs.ts');
 const {createSetWriter}=load('src/setEditing.ts',name=>name==='./db'?d:name==='./setInputs'?{previousPerformance}:require(name));
 const conn=new DatabaseSync(':memory:');

@@ -8,9 +8,7 @@ const root = path.resolve(__dirname, '..');
 function compile(source) {
   return ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 } }).outputText;
 }
-const mod = { exports: {} };
-new Function('module', 'exports', 'require', compile(fs.readFileSync(path.join(root, 'src/db.ts'), 'utf8')))(mod, mod.exports, require);
-const d = mod.exports;
+const d = require('./sync.cjs').load(path.join(root,'src/db.ts'));
 const conn = new DatabaseSync(':memory:');
 const db = {
   execAsync: async sql => conn.exec(sql),

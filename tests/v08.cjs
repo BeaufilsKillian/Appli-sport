@@ -10,8 +10,7 @@ function load(file){
  const src=fs.readFileSync(path.join(root,file),'utf8');
  const result=ts.transpileModule(src,{fileName:file,reportDiagnostics:true,compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}});
  check(!result.diagnostics?.some(d=>d.category===ts.DiagnosticCategory.Error),`${file} syntaxe`);
- const mod={exports:{}};new Function('module','exports','require',result.outputText)(mod,mod.exports,require);
- return mod.exports;
+ return require('./sync.cjs').load(path.join(root,file));
 }
 const app=fs.readFileSync(path.join(root,'App.tsx'),'utf8');
 const built=ts.transpileModule(app,{fileName:'App.tsx',reportDiagnostics:true,compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.CommonJS}});

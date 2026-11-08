@@ -8,7 +8,7 @@ import { spawn } from 'node:child_process';
 if (!process.env.npm_execpath) throw Error('Utiliser npm run deploy:vercel.');
 const base = await fs.realpath(os.tmpdir());
 const stage = await fs.mkdtemp(path.join(base, 'training-programme-vercel-'));
-const allowed = ['App.tsx', 'app.json', 'index.ts', 'package.json', 'package-lock.json', 'tsconfig.json', 'vercel.json', '.vercelignore', 'src', 'api', 'server', 'public', 'scripts', 'migrations', 'assets', 'neon.ts'];
+const allowed = ['App.tsx', 'app.json', 'index.ts', 'package.json', 'package-lock.json', 'tsconfig.json', 'metro.config.cjs', 'vercel.json', '.vercelignore', 'src', 'api', 'server', 'public', 'scripts', 'migrations', 'assets', 'neon.ts'];
 try {
   for (const item of allowed) await fs.cp(path.resolve(item), path.join(stage, item), { recursive: true, filter: source => !source.endsWith('.gif') });
   await fs.mkdir(path.join(stage, '.vercel'));

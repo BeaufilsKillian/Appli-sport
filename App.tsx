@@ -16,6 +16,7 @@ import { InlineSetValue } from './src/InlineSetValue';
 import { saveUpdateResume, takeUpdateResume } from './src/updateResume';
 import { previousPerformance, parseSetDuration, formatSetDuration } from './src/setInputs';
 import { rmReview } from './src/rmReview';
+import {validLoadStep} from './src/progression';
 import { NutritionScreen } from './src/nutrition/NutritionScreen';
 import { createSetWriter } from './src/setEditing';
 import { ExerciseMotion } from './src/ExerciseMotion';
@@ -241,6 +242,7 @@ function Main() {
   const [planNotes, setPlanNotes] = useState('');
   const [maxInput, setMaxInput] = useState('');
   const [maxReserve, setMaxReserve] = useState('2');
+  const [loadStepInput,setLoadStepInput]=useState('2.5');
   const [maxReviewed, setMaxReviewed] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customMuscle, setCustomMuscle] = useState('Pectoraux');
@@ -321,6 +323,7 @@ function Main() {
   const getExercise = (id: string): Exercise => allExercises.find(e => e.id === id) ?? getCatalogExercise(id);
   const maxFor = (id: string) => exerciseMaxes.find(m => m.exercise_id === id)?.weight ?? 0;
   const reserveFor = (id: string) => exerciseMaxes.find(m => m.exercise_id === id)?.reserve_reps ?? 2;
+  const stepFor=(id:string)=>exerciseMaxes.find(m=>m.exercise_id===id)?.load_step??2.5;
   const rmReviews = useMemo(() => new Map(exerciseMaxes.map(reference => [reference.exercise_id, rmReview(reference, historySets, clockNow)])), [exerciseMaxes, historySets, clockNow]);
   const loadSuggestion = (id: string, count: number, failure = false) => {
     return suggestedLoad(maxFor(id), count, failure ? 0 : reserveFor(id));
@@ -504,9 +507,11 @@ function Main() {
   function saveMax() {
     const value = parseNumber(maxInput);
     const reserve = Number(maxReserve);
+    const step=parseNumber(loadStepInput);
     if (!maxReserve.trim() || !Number.isInteger(reserve) || reserve < 0 || reserve > 10) { Alert.alert('Réserve invalide', 'Indique 0 à 10 répétitions en réserve.'); return; }
     if (!Number.isFinite(value) || value < 0 || value > 1000) { Alert.alert('1RM invalide','Entre une charge entre 0 et 1 000 kg.'); return; }
-    void safe(async () => { await saveExerciseMax(db, selectedExercise, value, reserve, maxReviewed); await refresh(); setModal('none'); });
+    if(!validLoadStep(step)){Alert.alert('Palier invalide','Indique 0,1 à 100 kg, deux décimales maximum.');return;}
+    void safe(async () => { await saveExerciseMax(db, selectedExercise, value, reserve, maxReviewed,step); await refresh(); setModal('none'); });
   }
   function saveCustomExercise() {
     const name = customName.trim(); if (!name || !customMuscle) { Alert.alert('Champs manquants', 'Indique un nom et un muscle.'); return; }
@@ -783,7 +788,8 @@ function Main() {
       <View style={{height:13}}/><H>Ma charge de référence</H>
       <Panel><View style={styles.inlineRow}><View style={{flex:1}}><Text style={styles.cardTitle}>1RM : {maxFor(ex.id) ? `${fmt(maxFor(ex.id),1)} kg` : 'non défini'}</Text>
        <Text style={styles.muted}>Charge indicative · {reserveFor(ex.id)} répétition(s) en réserve</Text></View>
-       <Button compact label="Modifier" secondary onPress={()=>{setMaxInput(String(maxFor(ex.id)||''));setMaxReserve(String(reserveFor(ex.id)));setMaxReviewed(false);setModal('max');}} /></View>
+       <Button compact label="Modifier" secondary onPress={()=>{setMaxInput(String(maxFor(ex.id)||''));setMaxReserve(String(reserveFor(ex.id)));setLoadStepInput(String(stepFor(ex.id)));setMaxReviewed(false);setModal('max');}} /></View>
+       <Text style={[styles.muted,{marginTop:8}]}>Palier de progression : {fmt(stepFor(ex.id),2)} kg</Text>
        {maxFor(ex.id)>0 && <Text style={[styles.muted,{marginTop:8}]}>Référence du {shortDate(exerciseMaxes.find(reference => reference.exercise_id === ex.id)!.updated_at)}</Text>}
        {rmReviews.get(ex.id) && <Text style={[styles.muted,{marginTop:8,color:C.gold}]}>1RM à réévaluer · {rmReviews.get(ex.id)}</Text>}
        {maxFor(ex.id)>0 && <Text style={[styles.blueLink,{marginTop:10}]}>Ex. 8 répétitions : ≈ {fmt(loadSuggestion(ex.id,8),1)} kg</Text>}
@@ -835,7 +841,7 @@ function Main() {
         const ex=getExercise(id);
         const plan=activeSessionExercises.find(p=>p.exercise_id===id);
         const originalPlan=relations.find(p=>p.template_id===active.template_id && p.exercise_id===id);
-        const last=historySets.find(h=>h.exercise_id===id);
+        const suggestion=plan?.suggested_load??(maxFor(id)>0?loadSuggestion(id,originalPlan?.to_failure?originalPlan.failure_rep_guide:repTarget(originalPlan,true),!!originalPlan?.to_failure):0);
         return <View key={id} style={styles.supersetExercise}>
           {isSuperset && <View style={styles.exerciseLetter}><Text style={styles.exerciseLetterText}>{String.fromCharCode(65+i)}</Text></View>}
           {customExercises.some(c=>c.id===ex.id) ? <ExerciseGlyph exercise={ex} size={54}/> : <ExerciseMotion theme={themeMode} exercise={ex} width={54} />}
@@ -849,10 +855,8 @@ function Main() {
             {plan?.planned_duration_seconds != null ? <Text style={styles.blueLink}>Objectif : {formatSetDuration(plan.planned_duration_seconds)} min:ss</Text> : <>
             {originalPlan?.to_failure ? <Text style={styles.blueLink}>Objectif : échec technique</Text> : null}
             {originalPlan && !originalPlan.to_failure && repRangeLabel(originalPlan) ? <Text style={styles.blueLink}>Objectif : {repRangeLabel(originalPlan)} rép.</Text> : null}
-            {maxFor(id)>0 && (!!originalPlan?.to_failure || repTarget(originalPlan, true)>0) ? <Text style={styles.blueLink}>Charge suggérée : {fmt(loadSuggestion(id, originalPlan?.to_failure?originalPlan.failure_rep_guide:repTarget(originalPlan, true),!!originalPlan?.to_failure),1)} kg</Text> : null}
+            {suggestion>0&&<><Text style={styles.blueLink}>Charge suggérée : {fmt(suggestion,2)} kg</Text>{plan?.progression_reason&&<Text style={styles.muted}>{plan.progression_reason}</Text>}</>}
             {rmReviews.get(id) && <Text style={[styles.muted,{color:C.gold}]}>1RM à réévaluer · {rmReviews.get(id)}</Text>}
-            {last && last.duration_seconds == null && !originalPlan?.to_failure && repTarget(originalPlan, true)>0 && last.rpe!==null && last.rpe<=8 && last.reps>=(originalPlan?.planned_reps??8) ?
-              <Text style={styles.green}>Progression possible : +2,5 kg si exécution maîtrisée</Text> : null}
             </>}
           </View>
           <IconButton name="information-circle-outline" onPress={()=>{setLibraryForTemplate(null);openExercise(ex);}} />
@@ -1333,7 +1337,10 @@ function Main() {
           {modal === 'max' && <>
             <Text style={styles.muted}>{getExercise(selectedExercise).name}</Text>
             <Text style={styles.formLabel}>1RM mesuré ou estimé (kg)</Text>
-            <TextInput style={styles.field} keyboardType="decimal-pad" placeholder="Ex : 80" placeholderTextColor={C.muted} value={maxInput} onChangeText={setMaxInput}/>
+            <TextInput accessibilityLabel="1RM en kg" style={styles.field} keyboardType="decimal-pad" placeholder="Ex : 80" placeholderTextColor={C.muted} value={maxInput} onChangeText={setMaxInput}/>
+            <Text style={styles.formLabel}>Palier de progression (kg)</Text>
+            <TextInput accessibilityLabel="Palier de progression en kg" style={styles.field} keyboardType="decimal-pad" value={loadStepInput} onChangeText={setLoadStepInput}/>
+            <Text style={styles.muted}>Plage min–max : hausse quand toutes les séries atteignent le maximum. Baisse après deux séances sous le minimum à la même charge. Applicable dès une nouvelle séance comparable.</Text>
             <Text style={styles.formLabel}>Réserve pour les charges suggérées (0 à 10)</Text>
             <TextInput accessibilityLabel="Répétitions en réserve pour les charges suggérées" style={styles.field} keyboardType="number-pad" value={maxReserve} onChangeText={setMaxReserve}/>
             <Text style={styles.muted}>Plus de réserve = charge suggérée plus légère. Objectif à l’échec : réserve 0.</Text>
@@ -1343,7 +1350,7 @@ function Main() {
             </Pressable>
             <Text style={styles.muted}>Rappel après 6 semaines, ou 3 séances comparables concordantes. Analyse jusqu’à 15 répétitions avec difficulté renseignée.</Text>
             <Text style={[styles.muted,{marginVertical:12}]}>La charge calculée n’est qu’une suggestion, pas une prescription. Aucun test maximal n’est nécessaire.</Text>
-            <Button label="Enregistrer le 1RM" onPress={saveMax}/>
+            <Button label="Enregistrer" onPress={saveMax}/>
           </>}
           {modal === 'custom' && <>
             <Text style={styles.formLabel}>Nom</Text><TextInput style={styles.field} value={customName} onChangeText={setCustomName}/>

@@ -17,7 +17,7 @@ export async function backupFingerprint(input: Backup): Promise<string> {
   const data = parseBackup(input);
   // Les valeurs ajoutées par la migration ne doivent pas créer de faux conflits.
   const content = Object.fromEntries(Object.keys(BACKUP_TABLES).map(table => [table,
-    (table === 'settings' ? substantiveSettings(data) : data[table as keyof typeof BACKUP_TABLES]).map(row => JSON.stringify(Object.fromEntries(Object.entries(row).filter(([key,value]) => !(key === 'planned_duration_seconds' || key === 'duration_seconds') || value !== null).filter(([key,value]) => key !== 'reserve_reps' || value !== 2)))).sort(),
+    (table === 'settings' ? substantiveSettings(data) : data[table as keyof typeof BACKUP_TABLES]).map(row => JSON.stringify(Object.fromEntries(Object.entries(row).filter(([key,value]) => !['planned_duration_seconds','duration_seconds','progression_key','suggested_load','progression_reason'].includes(key) || value !== null).filter(([key,value]) => (key !== 'reserve_reps' || value !== 2)&&(key !== 'load_step'||value!==2.5))))).sort(),
   ]));
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(content)));
   return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');

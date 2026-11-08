@@ -9,7 +9,7 @@ const cache=new Map();function load(file){const absolute=path.resolve(file);if(a
  if(name==='../shareFile')return {shareFile:async(name,body)=>{exported={name,body};}};
  if(name==='./platform')return {useNutritionCloud:()=>({status:'Test local',canImport:true,sync:async()=>{},search:async(query,barcode)=>{searches.push({query,barcode});if(searchError)throw Error(searchError);return searchFoods;},importFile:async db=>load('src/nutrition/store.ts').importNutrition(db,JSON.parse(exported.body))})};
  if(name==='./Scanner')return {Scanner:'Scanner'};
- if(name.startsWith('.')){const resolved=path.resolve(path.dirname(absolute),name);if(resolved.endsWith('.json'))return load(resolved);return load(resolved+(fs.existsSync(resolved+'.tsx')?'.tsx':'.ts'));}
+ if(name.startsWith('.')){const resolved=path.resolve(path.dirname(absolute),name.replace(/\.js$/,''));if(resolved.endsWith('.json'))return load(resolved);return load(resolved+(fs.existsSync(resolved+'.tsx')?'.tsx':'.ts'));}
  return require(name);
 });return mod.exports;}
 (async()=>{

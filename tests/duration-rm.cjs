@@ -62,7 +62,7 @@ const sharing = load('src/folderSharing.ts');
   assert.equal(previousPerformance(hist,historyTimed).duration_seconds,90);
 
   const snapshot = parseBackup(await d.exportAllData(source.db));
-  assert.equal(snapshot.schema,10); assert.equal(snapshot.logged_sets.find(set=>set.id===timed[0].id).duration_seconds,90);
+  assert.equal(snapshot.schema,11); assert.equal(snapshot.logged_sets.find(set=>set.id===timed[0].id).duration_seconds,90);
   await receiver.db.restore(snapshot); await receiver.reopen();
   assert.equal((await d.fetchOverview(receiver.db)).historySets.find(set=>set.id===timed[0].id).duration_seconds,90);
   assert.equal((await d.fetchOverview(receiver.db)).exerciseMaxes[0].reserve_reps,3);
@@ -87,7 +87,7 @@ const sharing = load('src/folderSharing.ts');
   assert(upgraded.logged_sets.every(set=>set.duration_seconds===null)); assert.equal(upgraded.exercise_maxes[0].reserve_reps,2);
   const same = structuredClone(upgraded);
   const oldContent = Object.fromEntries(Object.keys(load('src/backup.ts').BACKUP_TABLES).map(table=>[table,(table==='settings'?same[table].filter(row=>!load('src/web/backupFingerprint.ts').isImplicitSetting(row)):same[table]).map(row=>{
-    const copy={...row}; delete copy.planned_duration_seconds; delete copy.duration_seconds; delete copy.reserve_reps;
+    const copy={...row}; delete copy.planned_duration_seconds; delete copy.duration_seconds; delete copy.reserve_reps;delete copy.load_step;delete copy.progression_key;delete copy.suggested_load;delete copy.progression_reason;
     return JSON.stringify(copy);
   }).sort()]));
   assert.equal(await backupFingerprint(same),crypto.createHash('sha256').update(JSON.stringify(oldContent)).digest('hex'),'migration sans faux conflit de synchronisation');
@@ -119,9 +119,10 @@ const sharing = load('src/folderSharing.ts');
   const oldOverview = await d.fetchOverview(oldDevice.db);
   const oldWorkout = await d.startSelectedSession(oldDevice.db,oldOverview.templates[0],oldOverview.templateExercises,oldOverview.exerciseMaxes);
   await createSetWriter(oldDevice.db,()=>{}).write(oldWorkout.sets[0].id,{field:'weight',text:'25'});
+  await oldDevice.db.execAsync('UPDATE session_exercises SET progression_key=NULL,suggested_load=NULL,progression_reason=NULL');
   const oldFingerprint = await backupFingerprint((await oldDevice.db.snapshot()).data);
   await oldDevice.db.withExclusiveTransactionAsync(async tx=>{
-    for(const [table,column] of [['template_exercises','planned_duration_seconds'],['session_exercises','planned_duration_seconds'],['logged_sets','duration_seconds'],['exercise_maxes','reserve_reps']]) await tx.execAsync(`ALTER TABLE ${table} DROP COLUMN ${column}`);
+    for(const [table,column] of [['template_exercises','planned_duration_seconds'],['session_exercises','planned_duration_seconds'],['logged_sets','duration_seconds'],['exercise_maxes','reserve_reps'],['exercise_maxes','load_step'],['session_exercises','progression_key'],['session_exercises','suggested_load'],['session_exercises','progression_reason']]) await tx.execAsync(`ALTER TABLE ${table} DROP COLUMN ${column}`);
   });
   await oldDevice.reopen();
   const migrated = await d.fetchOverview(oldDevice.db);

@@ -1,13 +1,6 @@
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const ts = require('typescript');
 const { DatabaseSync } = require('node:sqlite');
-function load(file) {
-  const module = { exports: {} };
-  const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  new Function('module', 'exports', 'require', source)(module, module.exports, require);
-  return module.exports;
-}
+const {load}=require('./sync.cjs');
 const d = load('src/db.ts'), { parseBackup } = load('src/backup.ts');
 const raw = new DatabaseSync(':memory:');
 const db = {
@@ -30,7 +23,7 @@ const db = {
     assert.equal(saved.planned_reps_min, min); assert.equal(saved.planned_reps_max, max);
     assert.equal(d.repRangeLabel(saved), label); assert.equal(d.repTarget(saved), target);
     const backup = parseBackup(await d.exportAllData(db));
-    assert.equal(backup.schema, 10); assert.equal(backup.template_exercises[0].planned_reps_min, min); assert.equal(backup.template_exercises[0].planned_reps_max, max);
+    assert.equal(backup.schema, 11); assert.equal(backup.template_exercises[0].planned_reps_min, min); assert.equal(backup.template_exercises[0].planned_reps_max, max);
     assert.equal(parseBackup(JSON.parse(JSON.stringify(backup))).template_exercises[0].planned_reps_max, max);
     await d.initDatabase(db);
     assert.equal((await plan()).planned_reps_min, min, 'réouverture sans écraser une borne vide');
@@ -48,7 +41,7 @@ const db = {
   old.template_exercises = old.template_exercises.map(({ planned_reps_min, planned_reps_max, ...row }) => ({ ...row, planned_reps: 8 }));
   old.settings = old.settings.filter(row => row.key !== 'migration_rep_bounds');
   const upgraded = parseBackup(old);
-  assert.equal(upgraded.schema, 10); assert.equal(upgraded.template_exercises[0].planned_reps_min, 8); assert.equal(upgraded.template_exercises[0].planned_reps_max, null);
+  assert.equal(upgraded.schema, 11); assert.equal(upgraded.template_exercises[0].planned_reps_min, 8); assert.equal(upgraded.template_exercises[0].planned_reps_max, null);
   assert.ok(upgraded.settings.some(row => row.key === 'migration_rep_bounds'));
   const bad = structuredClone(upgraded); bad.template_exercises[0].planned_reps_max = 4;
   assert.throws(() => parseBackup(bad), /Plage/);

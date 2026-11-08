@@ -117,11 +117,12 @@ export class LocalDatabase {
   execAsync = (query: string) => this.exclusive(() => this.transaction(tx => tx.execAsync(query)));
   withExclusiveTransactionAsync = (fn: (txn: SQLiteDatabase) => Promise<void>) => this.exclusive(() => this.transaction(fn));
   private readData(database = this.sql) {
-    const data: Record<string, unknown> = { format: 'training-programme-backup', schema: 10, exported_at: new Date().toISOString() };
+    const data: Record<string, unknown> = { format: 'training-programme-backup', schema: 11, exported_at: new Date().toISOString() };
     for (const table of Object.keys(BACKUP_TABLES)) {
       const statement = database.prepare('SELECT * FROM ' + table); const rows = [];
       try { while (statement.step()) rows.push(statement.getAsObject()); } finally { statement.free(); }
       data[table] = rows;
+      if(table==='session_exercises'&&rows.some(row=>row.progression_key===undefined||row.suggested_load===undefined||row.progression_reason===undefined)||table==='exercise_maxes'&&rows.some(row=>row.load_step===undefined))data.schema=Math.min(Number(data.schema),10);
       if ((table === 'template_exercises' || table === 'session_exercises') && rows.some(row => row.planned_duration_seconds === undefined) || table === 'logged_sets' && rows.some(row => row.duration_seconds === undefined) || table === 'exercise_maxes' && rows.some(row => row.reserve_reps === undefined)) data.schema = Math.min(Number(data.schema), 9);
       if (table === 'template_exercises' && rows.some(row => row.planned_reps_min === undefined)) data.schema = 8;
     }

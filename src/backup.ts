@@ -4,21 +4,21 @@ export const BACKUP_TABLES = {
   templates: { id: 's', title: 's', category: 's', created_at: 'n', folder_id: 's?' },
   template_exercises: { template_id: 's', exercise_id: 's', position: 'n', planned_sets: 'n', planned_reps: 'n', planned_reps_min: 'n?', planned_reps_max: 'n?', rest_seconds: 'n', to_failure: 'n', failure_rep_guide: 'n', superset_group: 'n', dropset: 'n', notes: 's', planned_duration_seconds: 'n?' },
   sessions: { id: 's', template_id: 's', template_title: 's', started_at: 'n', finished_at: 'n?', folder_id: 's?' },
-  session_exercises: { session_id: 's', exercise_id: 's', position: 'n', superset_group: 'n', rest_seconds: 'n', notes: 's', planned_duration_seconds: 'n?' },
+  session_exercises: { session_id: 's', exercise_id: 's', position: 'n', superset_group: 'n', rest_seconds: 'n', notes: 's', planned_duration_seconds: 'n?', progression_key: 's?', suggested_load: 'n?', progression_reason: 's?' },
   logged_sets: { id: 's', session_id: 's', exercise_id: 's', ordinal: 'n', weight: 'n', reps: 'n', rpe: 'n?', completed: 'n', set_kind: 's', duration_seconds: 'n?' },
   settings: { key: 's', value: 's' },
-  exercise_maxes: { exercise_id: 's', weight: 'n', updated_at: 'n', reserve_reps: 'n' },
+  exercise_maxes: { exercise_id: 's', weight: 'n', updated_at: 'n', reserve_reps: 'n', load_step: 'n' },
   custom_exercises: { id: 's', name: 's', muscle: 's', equipment: 's', pattern: 's', icon: 's', description: 's' },
 } as const;
 export type BackupTable = keyof typeof BACKUP_TABLES;
-export type Backup = { format: 'training-programme-backup'; schema: 10; exported_at: string } & Record<BackupTable, Record<string, string | number | null>[]>;
+export type Backup = { format: 'training-programme-backup'; schema: 11; exported_at: string } & Record<BackupTable, Record<string, string | number | null>[]>;
 export const MAX_BACKUP_BYTES = 2_000_000;
 export function parseBackup(input: unknown): Backup {
   if (!input || typeof input !== 'object') throw new Error('Fichier de sauvegarde invalide.');
   const value = input as Record<string, unknown>;
-  if (value.format !== 'training-programme-backup' || ![8,9,10].includes(value.schema as number)) throw new Error('Format de sauvegarde non pris en charge.');
+  if (value.format !== 'training-programme-backup' || ![8,9,10,11].includes(value.schema as number)) throw new Error('Format de sauvegarde non pris en charge.');
   if (new TextEncoder().encode(JSON.stringify(input)).length > MAX_BACKUP_BYTES) throw new Error('Sauvegarde trop volumineuse (2 Mo maximum).');
-  const output: Record<string, unknown> = { format: value.format, schema: 10, exported_at: String(value.exported_at ?? new Date().toISOString()) };
+  const output: Record<string, unknown> = { format: value.format, schema: 11, exported_at: String(value.exported_at ?? new Date().toISOString()) };
   for (const [table, columns] of Object.entries(BACKUP_TABLES)) {
     if (!Array.isArray(value[table])) throw new Error(`Données manquantes : ${table}.`);
     const rows = value[table] as unknown[];
@@ -33,6 +33,10 @@ export function parseBackup(input: unknown): Backup {
         if (Number(value.schema) < 10) {
           if (((table === 'template_exercises' || table === 'session_exercises') && key === 'planned_duration_seconds') || (table === 'logged_sets' && key === 'duration_seconds')) v = null;
           if (table === 'exercise_maxes' && key === 'reserve_reps') v = 2;
+        }
+        if(Number(value.schema)<11){
+          if(table==='session_exercises'&&['progression_key','suggested_load','progression_reason'].includes(key))v=null;
+          if(table==='exercise_maxes'&&key==='load_step')v=2.5;
         }
         if (v === null && type.endsWith('?')) { clean[key] = null; continue; }
         if (type[0] === 's' ? typeof v !== 'string' || v.length > 10_000 : typeof v !== 'number' || !Number.isFinite(v) || Math.abs(v) > Number.MAX_SAFE_INTEGER) throw new Error(`Valeur invalide : ${table}.${key}.`);
@@ -60,5 +64,7 @@ export function parseBackup(input: unknown): Backup {
   if (data.logged_sets.some(row => row.duration_seconds !== null && (!Number.isInteger(row.duration_seconds) || Number(row.duration_seconds) < 0 || Number(row.duration_seconds) > 86400 || row.reps !== 0 || (row.completed === 1 && Number(row.duration_seconds) === 0)))) throw new Error('Durée réalisée invalide.');
   if (data.template_exercises.some(row => row.planned_duration_seconds !== null && (row.to_failure !== 0 || row.planned_reps !== 0 || row.planned_reps_min !== null || row.planned_reps_max !== null))) throw new Error('Objectif durée et répétitions incompatibles.');
   if (data.exercise_maxes.some(row => !Number.isInteger(row.reserve_reps) || Number(row.reserve_reps) < 0 || Number(row.reserve_reps) > 10)) throw new Error('Réserve invalide.');
+  if(data.exercise_maxes.some(row=>Number(row.load_step)<.1||Number(row.load_step)>100||Math.abs(Number(row.load_step)*100-Math.round(Number(row.load_step)*100))>1e-8))throw new Error('Palier de charge invalide.');
+  if(data.session_exercises.some(row=>row.suggested_load!==null&&(Number(row.suggested_load)<0||Number(row.suggested_load)>1000)))throw new Error('Charge suggérée invalide.');
   return data;
 }

@@ -1,7 +1,7 @@
 const fs=require('node:fs'),ts=require('typescript'),assert=require('node:assert/strict');
 const {DatabaseSync}=require('node:sqlite');
 const load=(file,requireFn=require)=>{const m={exports:{}};new Function('module','exports','require',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(m,m.exports,requireFn);return m.exports;};
-const d=load('src/db.ts'), inputs=load('src/setInputs.ts');
+const d=require('./sync.cjs').load('src/db.ts'), inputs=load('src/setInputs.ts');
 const {parseSetValue,createSetWriter}=load('src/setEditing.ts',name=>name==='./db'?d:name==='./setInputs'?inputs:require(name));
 const raw=new DatabaseSync(':memory:');
 const db={execAsync:async sql=>raw.exec(sql),runAsync:async(sql,...args)=>raw.prepare(sql).run(...args),getFirstAsync:async(sql,...args)=>raw.prepare(sql).get(...args)??null,getAllAsync:async(sql,...args)=>raw.prepare(sql).all(...args),withExclusiveTransactionAsync:async fn=>{raw.exec('BEGIN');try{await fn(db);raw.exec('COMMIT');}catch(e){raw.exec('ROLLBACK');throw e;}}};
