@@ -47,7 +47,7 @@
     "build:pwa": "node scripts/build-pwa.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
-    "test": "node tests/regressions.cjs && node tests/v07.cjs && node tests/v08.cjs && node tests/session-switch.cjs && node tests/exercise-demos.cjs && node tests/planner.test.cjs && node tests/rep-bounds.cjs && node tests/workout-progress.cjs && node tests/duration-rm.cjs && node tests/progression.cjs && node tests/navigation.cjs",
+    "test": "node tests/regressions.cjs && node tests/v07.cjs && node tests/v08.cjs && node tests/session-switch.cjs && node tests/exercise-demos.cjs && node tests/planner.test.cjs && node tests/rep-bounds.cjs && node tests/workout-progress.cjs && node tests/duration-rm.cjs && node tests/progression.cjs && node tests/navigation.cjs && node tests/confirmed-max.cjs",
     "test:pwa": "node tests/pwa.cjs",
     "preview:pwa": "node scripts/preview-pwa.mjs",
     "build": "npm run build:pwa",

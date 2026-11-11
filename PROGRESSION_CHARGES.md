@@ -1,6 +1,6 @@
 # Double progression — 9 novembre 2026
 
-La charge suggérée au démarrage d'une séance suit les répétitions réellement effectuées. La formule Epley inversée du 1RM reste inchangée ; elle fournit la charge de départ en l'absence d'une séance comparable. Sans 1RM, la dernière charge d'une série classique sert de repère. Aucune charge ni date de 1RM n'est réécrite automatiquement.
+La charge suggérée au démarrage d'une séance suit les répétitions réellement effectuées. La formule Epley inversée du 1RM reste inchangée ; elle fournit la charge de départ en l'absence d'une séance comparable. Sans 1RM, la dernière charge d'une série classique sert de repère. Le 1RM peut augmenter à la fin d’une séance lorsque toutes les séries classiques confirment la performance.
 
 ## Règles
 
@@ -23,7 +23,7 @@ Les dropsets sont exclus du calcul ; leur préremplissage reste à 80 % de la su
 
 Fiche de l'exercice → Ma charge de référence → Modifier → **Palier de progression (kg)**. Réglage personnel commun aux programmes utilisant cet exercice, défaut 2,5 kg ; 0,1 à 100 kg avec deux décimales maximum, virgule ou point accepté. Modifier uniquement le palier ne réactualise pas la date du 1RM. Le palier peut être enregistré sans 1RM, avec une référence à zéro.
 
-La suggestion et une raison courte s'affichent pendant la séance. Elles sont figées au démarrage, même après une modification du programme, du palier ou du 1RM, et conservées après réouverture. Les charges réellement saisies restent prioritaires. Les champs gris et la coche gardent leur fonction de copie de la performance précédente : une hausse suggérée n'est jamais enregistrée comme réalisée sans saisie correspondante.
+La suggestion et une raison courte s'affichent pendant la séance. Elles sont conservées après réouverture. Modifier le 1RM ou la réserve recalcule immédiatement la suggestion de la séance active, sans modifier les performances ni les brouillons. Le programme et le palier seuls ne modifient pas la suggestion en cours. Un RM plus récent que l’historique sert de nouveau point de départ. Les charges réellement saisies restent prioritaires. Les champs gris et la coche gardent leur fonction de copie de la performance précédente : une hausse suggérée n'est jamais enregistrée comme réalisée sans saisie correspondante.
 
 ## Données et compatibilité
 
@@ -40,3 +40,11 @@ Calcul et requête sur les deux dernières séances entièrement locaux. Aucun a
 Régressions, PWA, sync, séries, partage, nutrition, accès, TypeScript, lint et export PWA vérifiés. Les tests utilisent des données fictives. Rendu sur iPhone et comportement biomécanique réel non vérifiés ; le nombre de répétitions ne suffit pas à vérifier la technique ou la fatigue.
 
 Le principe de progression des répétitions puis de la charge est décrit par la NSCA : https://www.nsca.com/education/articles/nsca-coach/using-intensity-based-on-sets-and-repetitions-over-50-years-of-experience-a-brief-overview-of-load-setting-and-programming-strategy/. La règle de baisse après deux séances est un choix de produit explicite, pas un diagnostic de récupération.
+
+## Corrections du 11 novembre 2026
+
+Le RM automatique est évalué à la clôture de la séance, dans la même transaction que son enregistrement. Il faut un RM existant, au moins deux séries classiques, toutes les séries prévues présentes et toutes les séries classiques validées, avec 1 à 15 répétitions. La formule Epley est utilisée sans ajouter de réserve supposée (une répétition vaut directement la charge). Les estimations doivent rester dans un écart de 15 % ; la plus basse est retenue, arrondie vers le bas au dixième. Seules les hausses sont enregistrées. Exemple : trois séries à 170 kg × 12 donnent un RM estimé de 238 kg.
+
+Les durées, dropsets et exercices assistés/élastiques du catalogue ne participent pas au calcul. Une référence modifiée pendant la séance est préservée. Les séries incomplètes, une performance isolée ou une valeur aberrante ne déclenchent pas de hausse. Pour les exercices personnalisés, la charge doit représenter la résistance ajoutée.
+
+Les exercices à durée disposent de trois roues heures/minutes/secondes, pour les objectifs et les performances. La saisie de charge et de répétitions est masquée. Les anciennes charges éventuelles restent conservées dans les données historiques ; les nouvelles séries chronométrées commencent à zéro kg. Les durées restent stockées en secondes (1 seconde à 24 heures), compatibles avec sauvegarde, synchronisation et fonctionnement hors connexion.

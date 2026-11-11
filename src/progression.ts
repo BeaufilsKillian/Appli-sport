@@ -5,6 +5,14 @@ export type LoadSuggestion={weight:number;reason:string};
 export type ProgressionSession={session_id:string;template_id:string;exercise_id:string;started_at:number;finished_at:number;progression_key:string|null;set_count:number;completed_count:number;distinct_sets:number;first_set:number|null;last_set:number|null;first_weight:number|null;min_weight:number|null;max_weight:number|null;min_reps:number|null};
 export const validLoadStep=(value:number)=>Number.isFinite(value)&&value>=.1&&value<=100&&Math.abs(value*100-Math.round(value*100))<1e-8;
 
+export function savedProgressionTargets(key: string | null | undefined): { sets: number; reps: number } | null {
+  try {
+    const values = JSON.parse(key ?? 'null');
+    return Array.isArray(values) && values[0] === 1 && Number.isInteger(values[4]) && values[4] > 0 && Number.isInteger(values[6]) && values[6] > 0
+      ? { sets: values[4], reps: values[6] } : null;
+  } catch { return null; }
+}
+
 export function progressionKey(plan:TemplateExercise,plans:TemplateExercise[]):string|null {
   const exercise=EXERCISES.find(item=>item.id===plan.exercise_id);
   if(plan.planned_duration_seconds!=null||plan.to_failure||exercise&&(/assist/i.test(exercise.name)||exercise.equipment==='Élastique'))return null;

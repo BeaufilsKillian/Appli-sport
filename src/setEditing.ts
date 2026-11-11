@@ -31,7 +31,7 @@ export function createSetWriter(db: SQLiteDatabase, onSaved: (set: LoggedSet) =>
             if (patch === 'toggle') {
               const history = await txn.getAllAsync<HistorySet>(`SELECT ls.*, s.started_at, s.finished_at FROM logged_sets ls JOIN sessions s ON s.id=ls.session_id WHERE ls.exercise_id=? AND ls.completed=1 AND s.finished_at IS NOT NULL`, row.exercise_id);
               const previous = previousPerformance(history, row);
-              if (!input.weight.trim() && previous) input.weight = String(previous.weight).replace('.', ',');
+              if (!timed && !input.weight.trim() && previous) input.weight = String(previous.weight).replace('.', ',');
               if (!input.reps.trim() && previous) input.reps = String(previous.reps);
               if (timed && !input.duration?.trim() && previous?.duration_seconds != null) input.duration = formatSetDuration(previous.duration_seconds);
             } else if ('field' in patch) input[patch.field] = patch.text.slice(0, 40);

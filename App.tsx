@@ -1,3 +1,4 @@
+import { DurationPicker } from './src/DurationPicker';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Appearance, AppState, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView,
@@ -409,10 +410,10 @@ function Main() {
     const s = activeSets.find((row) => row.id === editingId);
     if (!s) return;
     const timed = s.duration_seconds != null;
-    const weight = parseNumber(weightInput); const reps = timed ? 0 : Number(repsInput);
+    const weight = timed ? s.weight : parseNumber(weightInput); const reps = timed ? 0 : Number(repsInput);
     const duration = timed ? parseSetDuration(repsInput) : null;
     const rpe = rpeInput.trim() ? parseNumber(rpeInput) : null;
-    if (!Number.isFinite(weight) || weight < 0 || (timed && duration === null) || !Number.isInteger(reps) || reps < 0 || reps > 1000 ||
+    if (!Number.isFinite(weight) || weight < 0 || (timed && (duration === null || duration === 0)) || !Number.isInteger(reps) || reps < 0 || reps > 1000 ||
       (rpe !== null && (!Number.isFinite(rpe) || rpe < 0 || rpe > 10))) {
       Alert.alert('Valeurs incorrectes', 'Vérifie la charge, les répétitions ou la durée (secondes ou min:ss), et le RPE (0 à 10).'); return;
     }
@@ -862,7 +863,7 @@ function Main() {
           <IconButton name="information-circle-outline" onPress={()=>{setLibraryForTemplate(null);openExercise(ex);}} />
         </View>;
       })}
-      {hasTimedSets && <Text style={styles.muted}>Durée : min:ss ou secondes · charge facultative.</Text>}
+
       <Panel style={{padding:0,overflow:'hidden',marginTop:10,marginBottom:12}}>
         {rounds.map((round,roundIndex)=><View key={`round-${round.number}`}>
           <View style={[styles.roundHeader,roundIndex>0&&{borderTopWidth:1,borderTopColor:C.line}]}>
@@ -871,7 +872,7 @@ function Main() {
           </View>
           <View style={[styles.tableRow,styles.tableHeader]}>
             <Text style={[styles.tableCell,{flex:0.8}]}>{isSuperset?'Exo':'Série'}</Text>
-            <Text style={styles.tableCell}>Charge</Text><Text style={styles.tableCell}>{allTimedSets ? 'Durée' : hasTimedSets ? 'Durée / Rép.' : 'Rép.'}</Text>
+            {!allTimedSets && <Text style={styles.tableCell}>Charge</Text>}<Text style={styles.tableCell}>{allTimedSets ? 'Durée' : hasTimedSets ? 'Durée / Rép.' : 'Rép.'}</Text>
             <Text style={[styles.tableCell,{flex:0.6}]}>✓</Text>
           </View>
           {round.rows.map(({exerciseIndex:exIndex,set:serie})=>{
@@ -880,10 +881,14 @@ function Main() {
             <Pressable style={{flex:0.8,alignItems:'center'}} onPress={()=>openSetEditor(serie)}>
               <Text style={[styles.tableText,isSuperset&&{color:C.blue}]}>{serie.set_kind==='drop'?`${String.fromCharCode(65+exIndex)} D`:isSuperset?String.fromCharCode(65+exIndex):serie.ordinal}</Text>
             </Pressable>
+            {serie.duration_seconds != null ? <Pressable accessibilityRole="button" accessibilityLabel={`Durée série ${serie.ordinal} de ${getExercise(serie.exercise_id).name}`} onPress={() => openSetEditor(serie)} style={{flex:allTimedSets?1:2,alignItems:'center',padding:12}}>
+              <Text style={{color:serie.input?.duration?C.white:C.muted}}>{formatSetDuration(parseSetDuration(serie.input?.duration ?? '') ?? previous?.duration_seconds ?? 0)} · Régler</Text>
+            </Pressable> : <>
             <InlineSetValue value={serie.input?.weight ?? String(serie.weight).replace('.', ',')} previous={previous?.weight} field="weight" label={`Charge série ${serie.ordinal} de ${getExercise(serie.exercise_id).name}`} color={C.white} borderColor={C.line}
               onText={text => { void safe(() => setWriter.write(serie.id, { field: 'weight', text })); }} />
             <InlineSetValue value={serie.duration_seconds != null ? serie.input?.duration ?? formatSetDuration(serie.duration_seconds) : serie.input?.reps ?? String(serie.reps)} previous={serie.duration_seconds != null ? previous?.duration_seconds ?? undefined : previous?.reps} field={serie.duration_seconds != null ? 'duration' : 'reps'} label={`${serie.duration_seconds != null ? 'Durée (min:ss ou secondes)' : 'Répétitions'} série ${serie.ordinal} de ${getExercise(serie.exercise_id).name}`} color={C.white} borderColor={C.line}
               onText={text => { void safe(() => setWriter.write(serie.id, { field: serie.duration_seconds != null ? 'duration' : 'reps', text })); }} />
+            </>}
             <Pressable accessibilityLabel={`Valider série ${serie.ordinal} de ${getExercise(serie.exercise_id).name}`}
               style={{flex:0.6,alignItems:'center'}} onPress={()=>toggleSet(serie)}>
               {ico(serie.completed?'checkmark-circle':'ellipse-outline',23,serie.completed?C.green:C.muted)}
@@ -1279,10 +1284,7 @@ function Main() {
              <Chip label="Échec technique" active={!planTimed && planFailure} onPress={()=>{setPlanTimed(false);setPlanFailure(true);}}/>
              <Chip label="Durée" active={planTimed} onPress={()=>{setPlanTimed(true);setPlanFailure(false);}}/>
             </View>
-            {planTimed ? <View style={{flexDirection:'row',gap:12}}>
-              <View style={{flex:1}}><Text style={styles.formLabel}>Minutes</Text><TextInput accessibilityLabel="Durée prévue en minutes" style={styles.field} keyboardType="number-pad" value={planMinutes} onChangeText={setPlanMinutes}/></View>
-              <View style={{flex:1}}><Text style={styles.formLabel}>Secondes</Text><TextInput accessibilityLabel="Secondes supplémentaires" style={styles.field} keyboardType="number-pad" value={planSeconds} onChangeText={setPlanSeconds}/></View>
-            </View> : !planFailure ? <View style={{flexDirection:'row',gap:12}}>
+            {planTimed ? <DurationPicker color={C.white} seconds={Number(planMinutes)*60+Number(planSeconds)} onChange={value=>{setPlanMinutes(String(Math.floor(value/60)));setPlanSeconds(String(value%60));}} /> : !planFailure ? <View style={{flexDirection:'row',gap:12}}>
               <View style={{flex:1}}><Text style={styles.formLabel}>Minimum</Text><TextInput accessibilityLabel="Répétitions minimum" style={styles.field} keyboardType="number-pad" value={planReps} onChangeText={setPlanReps} placeholder="Facultatif" placeholderTextColor={C.muted}/></View>
               <View style={{flex:1}}><Text style={styles.formLabel}>Maximum</Text><TextInput accessibilityLabel="Répétitions maximum" style={styles.field} keyboardType="number-pad" value={planRepsMax} onChangeText={setPlanRepsMax} placeholder="Facultatif" placeholderTextColor={C.muted}/></View>
             </View> : <>
@@ -1311,6 +1313,7 @@ function Main() {
             <View style={{ height: 17 }} /><Button label="Créer le programme" onPress={createNewTemplate} />
           </>}
           {modal === 'set' && <>
+            {editingTimed ? <DurationPicker color={C.white} seconds={parseSetDuration(repsInput) ?? 0} onChange={value=>setRepsInput(formatSetDuration(value))} /> : <>
             <Text style={styles.formLabel}>Poids (kg)</Text>
             <View style={styles.numberRow}>
               <TextInput style={[styles.field, { flex: 1 }]} keyboardType="decimal-pad" value={weightInput} onChangeText={setWeightInput} />
@@ -1323,14 +1326,15 @@ function Main() {
               {!editingTimed && <IconButton name="remove" onPress={() => setRepsInput(String(Math.max(0, (Number(repsInput) || 0) - 1)))} />}
               {!editingTimed && <IconButton name="add" onPress={() => setRepsInput(String((Number(repsInput) || 0) + 1))} />}
             </View>
+            </>}
             {!editingTimed && <><Text style={styles.formLabel}>Répétitions encore possibles (facultatif)</Text>
               <View style={{flexDirection:'row',flexWrap:'wrap',gap:6}}>
                 <Chip label="Non renseigné" active={!rpeInput.trim()} onPress={()=>setRpeInput('')}/>
                 {[0,1,2,3].map(reserve => <Chip key={reserve} label={reserve === 0 ? 'À l’échec' : `${reserve} rép.`} active={rpeInput.trim() !== '' && parseNumber(rpeInput) === 10 - reserve} onPress={()=>setRpeInput(String(10-reserve))}/>)}
               </View></>}
-            <Text style={styles.formLabel}>RPE (facultatif, 0 à 10)</Text>
+            {!editingTimed && <><Text style={styles.formLabel}>RPE (facultatif, 0 à 10)</Text>
             <TextInput style={styles.field} keyboardType="decimal-pad" placeholder="Ex : 8" placeholderTextColor={C.muted}
-              value={rpeInput} onChangeText={setRpeInput} />
+              value={rpeInput} onChangeText={setRpeInput} /></>}
             <View style={{ height: 14 }} /><Button label="Enregistrer" onPress={saveSetChanges} />
             <View style={{ height: 9 }} /><Button label="Supprimer cette série" danger onPress={removeEditingSet} />
           </>}

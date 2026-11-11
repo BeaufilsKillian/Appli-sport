@@ -1,6 +1,8 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 import type { SuggestedExercise } from './planner';
-import {progressionKey,recommendLoad,validLoadStep,type ProgressionSession} from './progression.js';
+import {progressionKey,recommendLoad,validLoadStep,savedProgressionTargets,type ProgressionSession} from './progression.js';
+import { confirmedMax } from './confirmedMax';
+import { EXERCISES } from './catalogue.js';
 
 export type Folder = { id: string; name: string; created_at: number };
 export type Template = { id: string; title: string; category: string; created_at: number; folder_id: string | null };
@@ -200,9 +202,21 @@ export function suggestedLoad(max: number, reps: number, reserve = 2): number {
 export async function saveExerciseMax(db: SQLiteDatabase, exerciseId: string, weight: number, reserve = 2, reviewedToday = false, loadStep?: number) {
   if (!Number.isFinite(weight) || weight < 0 || weight > 1000 || !Number.isInteger(reserve) || reserve < 0 || reserve > 10) throw new Error('1RM : 0 à 1 000 kg ; réserve : 0 à 10 répétitions.');
   if(loadStep!==undefined&&!validLoadStep(loadStep))throw new Error('Palier : 0,1 à 100 kg, deux décimales maximum.');
-  await db.runAsync(`INSERT INTO exercise_maxes (exercise_id,weight,updated_at,reserve_reps,load_step) VALUES (?,?,?,?,?)
-    ON CONFLICT(exercise_id) DO UPDATE SET weight=excluded.weight, reserve_reps=excluded.reserve_reps,load_step=COALESCE(?,exercise_maxes.load_step),
-    updated_at=CASE WHEN exercise_maxes.weight=excluded.weight AND ?=0 THEN exercise_maxes.updated_at ELSE excluded.updated_at END`, exerciseId, weight, Date.now(), reserve, loadStep??2.5,loadStep??null,reviewedToday ? 1 : 0);
+  await db.withExclusiveTransactionAsync(async txn => {
+    const previous = await txn.getFirstAsync<ExerciseMax>('SELECT * FROM exercise_maxes WHERE exercise_id=?', exerciseId);
+    await txn.runAsync(`INSERT INTO exercise_maxes (exercise_id,weight,updated_at,reserve_reps,load_step) VALUES (?,?,?,?,?)
+      ON CONFLICT(exercise_id) DO UPDATE SET weight=excluded.weight, reserve_reps=excluded.reserve_reps,load_step=COALESCE(?,exercise_maxes.load_step),
+      updated_at=CASE WHEN exercise_maxes.weight=excluded.weight AND ?=0 THEN exercise_maxes.updated_at ELSE excluded.updated_at END`, exerciseId, weight, Date.now(), reserve, loadStep??2.5,loadStep??null,reviewedToday ? 1 : 0);
+    if (previous?.weight === weight && (previous.reserve_reps ?? 2) === reserve) return;
+    const plans = await txn.getAllAsync<SessionExercise & { template_id: string }>(`SELECT se.*,s.template_id FROM session_exercises se JOIN sessions s ON s.id=se.session_id WHERE se.exercise_id=? AND s.finished_at IS NULL AND se.planned_duration_seconds IS NULL`, exerciseId);
+    for (const plan of plans) {
+      const template = await txn.getFirstAsync<TemplateExercise>('SELECT * FROM template_exercises WHERE template_id=? AND exercise_id=?', plan.template_id, exerciseId);
+      const key = savedProgressionTargets(plan.progression_key);
+      const target = key?.reps ?? (template?.to_failure ? template.failure_rep_guide : repTarget(template ?? undefined, true));
+      const load = suggestedLoad(weight, target, template?.to_failure && !key ? 0 : reserve);
+      await txn.runAsync('UPDATE session_exercises SET suggested_load=?,progression_reason=? WHERE session_id=? AND exercise_id=?', load, weight > 0 ? 'Charge recalculée depuis le 1RM.' : 'Référence RM retirée.', plan.session_id, exerciseId);
+    }
+  });
 }
 export async function createCustomExercise(db: SQLiteDatabase, name: string, muscle: string, equipment: string, description: string) {
   const id = newId();
@@ -260,7 +274,7 @@ export async function startSession(db: SQLiteDatabase, template: Template, plans
     const target = plan.to_failure ? plan.failure_rep_guide : repTarget(plan, true);
     const estimate = timed ? 0 : suggestedLoad(reference?.weight ?? 0, target, plan.to_failure ? 0 : reference?.reserve_reps ?? 2);
     const initial={weight:estimate||previous?.weight||0,reason:estimate?'Charge de départ calculée depuis le 1RM.':'Dernière charge enregistrée.'};
-    const suggestion=timed?initial:recommendLoad(plan,plans,progressionHistory,initial,reference?.load_step??2.5);
+    const suggestion=timed?{weight:0,reason:''}:recommendLoad(plan,plans,progressionHistory.filter(row => !reference || row.finished_at >= reference.updated_at),initial,reference?.load_step??2.5);
     await db.runAsync('INSERT INTO session_exercises (session_id,exercise_id,position,superset_group,rest_seconds,notes,planned_duration_seconds,progression_key,suggested_load,progression_reason) VALUES (?,?,?,?,?,?,?,?,?,?)',
       id,plan.exercise_id,index,plan.superset_group??0,plan.rest_seconds??120,plan.notes??'',plan.planned_duration_seconds??null,progressionKey(plan,plans),timed?null:suggestion.weight,timed?null:suggestion.reason);
     for (let ordinal = 1; ordinal <= plan.planned_sets; ordinal++) {
@@ -300,13 +314,13 @@ export async function startSelectedSession(
     if (!plans.length) throw new Error('Ajoute au moins un exercice avant de commencer.');
     if (current) {
       const completed = await txn.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM logged_sets WHERE session_id = ? AND completed = 1', current.id);
-      if (completed && completed.n > 0) await finishSession(txn, current.id);
+      if (completed && completed.n > 0) await finishSession(txn, current.id, true);
       else {
         if (!previous?.allowDiscard) throw new Error('Le remplacement des saisies non validées doit être confirmé.');
         await discardSession(txn, current.id);
       }
     }
-    outcome.result = await startSession(txn, template, plans, maxes);
+    outcome.result = await startSession(txn, template, plans, await txn.getAllAsync<ExerciseMax>('SELECT * FROM exercise_maxes'));
   });
   if (!outcome.result) throw new Error('Impossible de démarrer la séance.');
   return outcome.result;
@@ -319,7 +333,7 @@ export async function createLoggedSet(db: SQLiteDatabase, sessionId: string, exe
   const row = await db.getFirstAsync<{ n: number }>('SELECT COALESCE(MAX(ordinal), 0) + 1 AS n FROM logged_sets WHERE session_id = ? AND exercise_id = ?', sessionId, exerciseId);
   const plan = await db.getFirstAsync<SessionExercise>('SELECT * FROM session_exercises WHERE session_id=? AND exercise_id=?', sessionId, exerciseId);
   const timed = latest ? latest.duration_seconds != null : plan?.planned_duration_seconds != null;
-  const set: LoggedSet = { id: newId(), session_id: sessionId, exercise_id: exerciseId, ordinal: row?.n ?? 1, weight: latest?.weight ?? 0, reps: timed ? 0 : latest?.reps ?? 8, rpe: null, completed: 0, set_kind: 'normal', duration_seconds:timed ? 0 : null };
+  const set: LoggedSet = { id: newId(), session_id: sessionId, exercise_id: exerciseId, ordinal: row?.n ?? 1, weight: timed ? 0 : latest?.weight ?? 0, reps: timed ? 0 : latest?.reps ?? 8, rpe: null, completed: 0, set_kind: 'normal', duration_seconds:timed ? 0 : null };
   await db.runAsync('INSERT INTO logged_sets (id,session_id,exercise_id,ordinal,weight,reps,rpe,completed,set_kind,duration_seconds) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', set.id, set.session_id, set.exercise_id, set.ordinal, set.weight, set.reps, set.rpe, set.completed, set.set_kind,set.duration_seconds!);
   set.input = { weight: '', reps: '', ...(timed ? { duration: '' } : {}) };
   await saveSetInput(db, set.id, set.input);
@@ -329,9 +343,30 @@ export async function deleteLoggedSet(db: SQLiteDatabase, id: string) {
   await db.runAsync('DELETE FROM settings WHERE key = ?', `set_input:${id}`);
   await db.runAsync('DELETE FROM logged_sets WHERE id = ?', id);
 }
-export async function finishSession(db: SQLiteDatabase, id: string) {
-  await clearSessionInputs(db, id);
-  await db.runAsync('UPDATE sessions SET finished_at = ? WHERE id = ?', Date.now(), id);
+export async function finishSession(db: SQLiteDatabase, id: string, inTransaction = false) {
+  const finish = async (txn: SQLiteDatabase) => {
+    const session = await txn.getFirstAsync<Session>('SELECT * FROM sessions WHERE id=?', id);
+    if (!session || session.finished_at !== null) return;
+    const now = Date.now();
+    const plans = await txn.getAllAsync<SessionExercise>('SELECT * FROM session_exercises WHERE session_id=?', id);
+    const sets = await txn.getAllAsync<LoggedSet>('SELECT * FROM logged_sets WHERE session_id=?', id);
+    for (const plan of plans) {
+      const exercise = EXERCISES.find(row => row.id === plan.exercise_id);
+      if (plan.planned_duration_seconds != null || exercise && (/assist/i.test(exercise.name) || exercise.equipment === 'Élastique')) continue;
+      const reference = await txn.getFirstAsync<ExerciseMax>('SELECT * FROM exercise_maxes WHERE exercise_id=?', plan.exercise_id);
+      if (!reference || reference.weight <= 0 || reference.updated_at > session.started_at) continue;
+      const key = savedProgressionTargets(plan.progression_key);
+      const template = await txn.getFirstAsync<TemplateExercise>('SELECT * FROM template_exercises WHERE template_id=? AND exercise_id=?', session.template_id, plan.exercise_id);
+      const planned = key?.sets ?? template?.planned_sets;
+      if (planned === undefined || !Number.isInteger(planned) || planned < 1) continue;
+      const estimate = confirmedMax(sets.filter(set => set.exercise_id === plan.exercise_id), planned, reference.weight);
+      if (estimate !== null) await txn.runAsync('UPDATE exercise_maxes SET weight=?,updated_at=? WHERE exercise_id=?', estimate, now, plan.exercise_id);
+    }
+    await clearSessionInputs(txn, id);
+    await txn.runAsync('UPDATE sessions SET finished_at = ? WHERE id = ?', now, id);
+  };
+  if (inTransaction) await finish(db);
+  else await db.withExclusiveTransactionAsync(finish);
 }
 export async function discardSession(db: SQLiteDatabase, id: string) {
   await clearSessionInputs(db, id);
