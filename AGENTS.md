@@ -1,5 +1,9 @@
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
+## Livraison demandée par l’utilisateur — 11 novembre 2026
+
+Après chaque modification de l’application, exécuter les vérifications adaptées (dont lint et typecheck), enregistrer les changements dans Git, les pousser sur GitHub, puis déployer la mise à jour en production sur le projet Vercel EXISTANT `training-programme` du compte `overblast2`. Cette publication est autorisée par défaut par l’utilisateur : ne pas redemander confirmation à chaque livraison. Utiliser la procédure de `DEPLOIEMENT_PWA.md` (`npm run deploy:vercel` une fois le projet lié). Ne pas considérer le push GitHub comme un déploiement : le dépôt n’est pas relié automatiquement à Vercel. Vérifier après publication que `https://training-programme-ten.vercel.app/sw.js` expose la version attendue, puis annoncer séparément le commit poussé et le déploiement confirmé. Si une connexion ou une autre condition empêche la publication, le signaler explicitement et reprendre dès que possible. Ne jamais créer un second projet ni modifier les secrets de production pour contourner un problème de connexion.
+
 ## Ponytail : mode lite
 
 Par défaut, appliquer la compétence installée `ponytail:ponytail` au niveau **lite** pour les tâches de ce projet, sauf instruction contraire de l’utilisateur. Charger son `SKILL.md` depuis le catalogue des compétences disponibles.
