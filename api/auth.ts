@@ -40,7 +40,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // L'identité vient exclusivement de Neon, jamais de l'e-mail fourni par le navigateur.
     if(response.ok&&['sign-up/email','sign-in/email','get-session'].includes(path)&&process.env.ADMIN_USER_ID) {
       const data=JSON.parse(result);
-      if(typeof data.user?.id==='string'&&typeof data.user?.email==='string') {
+      if(typeof data?.user?.id==='string'&&typeof data?.user?.email==='string') {
         const store=accessStore(process.env.DATABASE_URL!);
         const request=await store.ensure({id:data.user.id,email:data.user.email});
         if(request.created&&!request.admin) await notifyAdministrator(store);
