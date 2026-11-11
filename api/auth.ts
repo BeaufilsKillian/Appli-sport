@@ -47,5 +47,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
     return res.status(response.status).send(result);
-  } catch (error) { return sendError(res, error); }
+  } catch (error) {
+    // Ne journaliser ni message, ni URL, ni identifiant ou secret du compte.
+    if (!(error instanceof ApiError)) console.error('Auth proxy failure', error instanceof Error ? {
+      name: error.name,
+      frames: error.stack?.split('\n').slice(1, 5).map(line => line.replace(/https?:\/\/\S+/g, '[url]')),
+    } : { name: 'UnknownError' });
+    return sendError(res, error);
+  }
 }
